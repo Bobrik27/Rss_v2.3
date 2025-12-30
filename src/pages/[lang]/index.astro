@@ -1,6 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import StaticHero from '../../components/StaticHero.astro';
+import Competencies from '../../components/sections/Competencies.astro';
+import Solutions from '../../components/sections/Solutions.astro';
+import { getLandingData } from '../../data/landing';
 
 export function getStaticPaths() {
   return [
@@ -11,6 +14,7 @@ export function getStaticPaths() {
 }
 
 const { lang } = Astro.params;
+const data = getLandingData(lang || 'ru');
 ---
 
 <Layout title="Run Swift Studio" lang={lang}>
@@ -18,11 +22,18 @@ const { lang } = Astro.params;
         <!-- The Hero Section -->
         <StaticHero />
         
-        <!-- Content Placeholder -->
-        <div class="container mx-auto px-6 py-20">
-            <p class="text-center text-muted-foreground">
-                Content for {lang} will go here.
-            </p>
+        <!-- Competencies & Solutions Sections -->
+        <div class="relative z-10 bg-background space-y-32 py-20">
+            <Competencies
+                data={data.competencies}
+                title={data.texts.competenciesTitle}
+                sub={data.texts.competenciesSub}
+            />
+            <Solutions
+                data={data.solutions}
+                title={data.texts.solutionsTitle}
+                sub={data.texts.solutionsSub}
+            />
         </div>
     </main>
 </Layout>
