@@ -1,0 +1,47 @@
+---
+import { ui } from '../i18n/ui.ts';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+const dictionary = ui[lang as keyof typeof ui] || ui.ru;
+---
+
+<header class="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+  <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+    <a href={`/${lang}`} class="text-2xl font-bold tracking-tight">
+      Run Swift Studio
+    </a>
+
+    <nav class="hidden md:flex items-center gap-8">
+      <a href={`/${lang}`} class="text-text hover:text-primary transition-colors">
+        {dictionary.nav.home}
+      </a>
+      <a href={`/${lang}/about`} class="text-text hover:text-primary transition-colors">
+        {dictionary.nav.about}
+      </a>
+      <a href={`/${lang}/portfolio`} class="text-text hover:text-primary transition-colors">
+        {dictionary.nav.portfolio}
+      </a>
+      <a href={`/${lang}/blog`} class="text-text hover:text-primary transition-colors">
+        {dictionary.nav.blog}
+      </a>
+      <a href={`/${lang}/contact`} class="text-text hover:text-primary transition-colors">
+        {dictionary.nav.contact}
+      </a>
+    </nav>
+
+    <div class="flex items-center gap-4">
+      <!-- Language switcher placeholder -->
+      <div class="text-sm text-text-muted">
+        {lang.toUpperCase()}
+      </div>
+      <!-- Theme toggle placeholder -->
+      <button class="p-2 rounded-lg border border-border hover:border-primary">
+        {dictionary.theme.toggle}
+      </button>
+    </div>
+  </div>
+</header>

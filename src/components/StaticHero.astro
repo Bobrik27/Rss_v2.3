@@ -1,0 +1,81 @@
+---
+// No props needed for now
+---
+
+<section class="relative min-h-screen flex items-center justify-center bg-background overflow-hidden">
+  <div class="container mx-auto px-4 text-center">
+    <div class="max-w-6xl mx-auto">
+      <!-- Main title split into two lines -->
+      <h1 class="font-black uppercase tracking-[-0.02em] leading-[0.85]">
+        <span class="block text-6xl md:text-8xl lg:text-[10rem] hero-text-white">
+          RUNSWIFT
+        </span>
+        <span class="block text-6xl md:text-8xl lg:text-[10rem] hero-text-orange mt-2 md:mt-4">
+          STUDIO
+        </span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="mt-8 md:mt-12 text-lg md:text-2xl text-text-muted max-w-3xl mx-auto font-light">
+        We build digital products with a focus on speed, quality, and outstanding visual identity.
+      </p>
+
+      <!-- CTA buttons -->
+      <div class="mt-10 md:mt-16 flex flex-col sm:flex-row gap-4 justify-center">
+        <a
+          href="/contact"
+          class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors duration-300 shadow-lg shadow-primary/20"
+        >
+          Discuss a project
+        </a>
+        <a
+          href="/portfolio"
+          class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg border-2 border-border text-text hover:border-primary transition-colors duration-300"
+        >
+          View our work
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decorative elements (subtle) -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-secondary/5 blur-3xl"></div>
+  </div>
+</section>
+
+<style>
+  .hero-text-white {
+    color: white;
+    text-shadow:
+      0 0 30px rgba(255, 255, 255, 0.3),
+      0 0 10px rgba(255, 255, 255, 0.5);
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+  }
+
+  .hero-text-orange {
+    color: #ff6d5a;
+    text-shadow:
+      0 0 30px rgba(255, 109, 90, 0.4),
+      0 0 10px rgba(255, 109, 90, 0.6);
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+  }
+
+  /* Adjust for light theme */
+  :global([data-theme="light"]) .hero-text-white {
+    color: #111;
+    text-shadow:
+      0 0 20px rgba(0, 0, 0, 0.1),
+      0 0 5px rgba(0, 0, 0, 0.2);
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.2);
+  }
+
+  :global([data-theme="light"]) .hero-text-orange {
+    color: #d84315;
+    text-shadow:
+      0 0 20px rgba(216, 67, 21, 0.2),
+      0 0 5px rgba(216, 67, 21, 0.3);
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.2);
+  }
+</style>
