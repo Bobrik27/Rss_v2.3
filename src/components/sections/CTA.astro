@@ -1,0 +1,48 @@
+---
+import type { getLandingData } from '../../data/landing';
+
+interface Props {
+  data: ReturnType<typeof getLandingData>['cta'];
+}
+const { data } = Astro.props;
+---
+
+<section class="relative py-32 overflow-hidden">
+  <div class="container mx-auto px-4 text-center">
+    <!-- Background glow -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-96 bg-primary/5 rounded-full blur-3xl -z-10"></div>
+
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-6xl md:text-7xl font-black tracking-tight text-white mb-8">
+        {data.title}
+      </h2>
+      <p class="text-2xl md:text-3xl text-text-muted mb-12 leading-relaxed">
+        {data.subtitle}
+      </p>
+      <div class="flex flex-col sm:flex-row gap-6 justify-center">
+        <a
+          href={`mailto:contact@runswift.studio?subject=${encodeURIComponent('Automation Inquiry')}`}
+          class="group inline-flex items-center justify-center gap-4 px-12 py-6 bg-primary text-white text-2xl font-bold rounded-2xl hover:bg-primary/90 transition-all duration-300 hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] hover:-translate-y-1"
+        >
+          {data.buttonIcon && (() => {
+            const Icon = data.buttonIcon;
+            return <Icon className="w-8 h-8" />;
+          })()}
+          <span>{data.buttonText}</span>
+        </a>
+        <a
+          href="/ru/portfolio"
+          class="group inline-flex items-center justify-center gap-4 px-12 py-6 bg-transparent border-2 border-white/20 text-white text-2xl font-bold rounded-2xl hover:border-primary/50 hover:text-primary transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]"
+        >
+          <span>View Portfolio</span>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
+      </div>
+      <p class="mt-12 text-text-muted/70 text-lg">
+        Response within 24 hours • No‑commitment consultation
+      </p>
+    </div>
+  </div>
+</section>

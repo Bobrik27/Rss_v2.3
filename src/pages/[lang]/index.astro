@@ -1,8 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import StaticHero from '../../components/StaticHero.astro';
+import About from '../../components/sections/About.astro';
 import Competencies from '../../components/sections/Competencies.astro';
 import Solutions from '../../components/sections/Solutions.astro';
+import Approach from '../../components/sections/Approach.astro';
+import CTA from '../../components/sections/CTA.astro';
 import { getLandingData } from '../../data/landing';
 
 export function getStaticPaths() {
@@ -18,10 +21,15 @@ const data = getLandingData(lang || 'ru');
 ---
 
 <Layout title="Run Swift Studio" lang={lang}>
-    <main>
+    <main class="relative">
         <!-- The Hero Section -->
         <StaticHero />
         
+        <!-- About Section -->
+        <div class="relative z-10 bg-background">
+            <About data={data.about} />
+        </div>
+
         <!-- Competencies & Solutions Sections -->
         <div class="relative z-10 bg-background space-y-32 py-20">
             <Competencies
@@ -34,6 +42,20 @@ const data = getLandingData(lang || 'ru');
                 title={data.texts.solutionsTitle}
                 sub={data.texts.solutionsSub}
             />
+        </div>
+
+        <!-- Approach Section -->
+        <div class="relative z-10 bg-background py-20">
+            <Approach
+                data={data.approach}
+                title={data.texts.approachTitle}
+                sub={data.texts.approachSub}
+            />
+        </div>
+
+        <!-- CTA Section -->
+        <div class="relative z-10 bg-background">
+            <CTA data={data.cta} />
         </div>
     </main>
 </Layout>
