@@ -10,9 +10,9 @@ import { defineMiddleware } from 'astro:middleware';
  * 
  * For now we just pass the request through.
  */
-export const onRequest = defineMiddleware((context, next) => {
+export const onRequest = defineMiddleware((_context, next) => {
   // Example: add a header to indicate i18n is active
-  context.locals.i18n = {
+  _context.locals.i18n = {
     defaultLocale: 'ru',
     locales: ['ru', 'en', 'de'],
   };

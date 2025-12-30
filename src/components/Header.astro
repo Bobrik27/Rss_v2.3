@@ -1,5 +1,7 @@
 ---
 import { ui } from '../i18n/ui.ts';
+import LanguagePicker from './LanguagePicker.astro';
+import ThemeToggle from './ThemeToggle.tsx';
 
 interface Props {
   lang: string;
@@ -34,14 +36,8 @@ const dictionary = ui[lang as keyof typeof ui] || ui.ru;
     </nav>
 
     <div class="flex items-center gap-4">
-      <!-- Language switcher placeholder -->
-      <div class="text-sm text-text-muted">
-        {lang.toUpperCase()}
-      </div>
-      <!-- Theme toggle placeholder -->
-      <button class="p-2 rounded-lg border border-border hover:border-primary">
-        {dictionary.theme.toggle}
-      </button>
+      <LanguagePicker lang={lang} />
+      <ThemeToggle client:load />
     </div>
   </div>
 </header>

@@ -1,0 +1,23 @@
+---
+import { ui } from '../i18n/ui.ts';
+
+interface Props {
+  lang: string;
+}
+
+const { lang: currentLang } = Astro.props;
+const languages = ui;
+---
+
+<ul class="flex gap-2">
+  {Object.keys(languages).map((lang) => (
+    <li>
+      <a 
+        href={`/${lang}/`} 
+        class={currentLang === lang ? "font-bold text-white" : "text-muted-foreground hover:text-white transition-colors"}
+      >
+        {lang.toUpperCase()}
+      </a>
+    </li>
+  ))}
+</ul>
