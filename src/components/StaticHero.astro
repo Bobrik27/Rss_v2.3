@@ -1,5 +1,13 @@
 ---
-// No props needed for now
+import { content } from '../i18n/content';
+
+interface Props {
+  lang?: string;
+}
+
+const { lang = 'en' } = Astro.props;
+const validLang = (['en', 'de', 'ru'] as const).includes(lang as any) ? lang as keyof typeof content : 'en';
+const hero = content[validLang].hero;
 ---
 
 <section class="relative min-h-screen flex items-center justify-center bg-background overflow-hidden">
@@ -16,23 +24,23 @@
       </h1>
 
       <!-- Subtitle -->
-      <p class="mt-8 md:mt-12 text-lg md:text-2xl text-text-muted max-w-3xl mx-auto font-light">
-        We build digital products with a focus on speed, quality, and outstanding visual identity.
+      <p class="mt-8 md:mt-12 text-lg md:text-2xl text-muted-foreground max-w-3xl mx-auto font-light">
+        {hero.subtitle}
       </p>
 
       <!-- CTA buttons -->
       <div class="mt-10 md:mt-16 flex flex-col sm:flex-row gap-4 justify-center">
         <a
-          href="/contact"
-          class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors duration-300 shadow-lg shadow-primary/20"
+          href="#contact"
+          class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg shadow-primary/20"
         >
-          Discuss a project
+          {hero.cta}
         </a>
         <a
-          href="/portfolio"
-          class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg border-2 border-border text-text hover:border-primary transition-colors duration-300"
+          href="#solutions"
+          class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg border-2 border-border text-foreground hover:border-primary transition-colors duration-300"
         >
-          View our work
+          {lang === 'ru' ? 'Наши решения' : lang === 'de' ? 'Unsere Lösungen' : 'Our Solutions'}
         </a>
       </div>
     </div>
