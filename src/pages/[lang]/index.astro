@@ -3,9 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import StaticHero from '../../components/StaticHero.astro';
 import About from '../../components/sections/About.astro';
 import Competencies from '../../components/sections/Competencies.astro';
-import Solutions from '../../components/sections/Solutions.astro';
-import Approach from '../../components/sections/Approach.astro';
 import CTA from '../../components/sections/CTA.astro';
+import Marketing from '../../components/sections/Marketing.astro';
 import { getLandingData } from '../../data/landing';
 
 export function getStaticPaths() {
@@ -30,27 +29,18 @@ const data = getLandingData(lang || 'ru');
             <About data={data.about} />
         </div>
 
-        <!-- Competencies & Solutions Sections -->
+        <!-- Competencies Section -->
         <div class="relative z-10 bg-background space-y-32 py-20">
             <Competencies
                 data={data.competencies}
                 title={data.texts.competenciesTitle}
                 sub={data.texts.competenciesSub}
             />
-            <Solutions
-                data={data.solutions}
-                title={data.texts.solutionsTitle}
-                sub={data.texts.solutionsSub}
-            />
         </div>
 
-        <!-- Approach Section -->
+        <!-- Marketing Section (Solutions, Approach, Team) -->
         <div class="relative z-10 bg-background py-20">
-            <Approach
-                data={data.approach}
-                title={data.texts.approachTitle}
-                sub={data.texts.approachSub}
-            />
+            <Marketing />
         </div>
 
         <!-- CTA Section -->
