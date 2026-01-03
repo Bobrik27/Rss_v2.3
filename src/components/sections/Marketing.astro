@@ -1,0 +1,172 @@
+---
+import { Shield, Cpu, Cloud, Zap, Network, Container } from "lucide-react";
+
+// 🔴 НАСТРОЙКА КОМАНДЫ (ЛЕГЕНДА)
+const team = [
+  {
+    name: "Elena V.", // Имя сотрудника
+    role: "System Analyst", // Должность
+    desc: "Переводит бизнес-хаос в четкую логику и технические задания. Видит структуру там, где другие видят бардак.", // Описание
+    img: "/team/1.jpg" // 🔴 Путь к твоему фото (проверь название файла!)
+  },
+  {
+    name: "Alex K.",
+    role: "Lead Engineer",
+    desc: "Мастер n8n и архитектуры. Соединяет несоединимое, пишет сложные API интеграции и бэкенд.",
+    img: "/team/2.jpg" // 🔴 Второе фото
+  },
+  {
+    name: "Marcus R.",
+    role: "DevOps Architect",
+    desc: "Отвечает за то, чтобы серверы не падали. Docker, безопасность и мониторинг 24/7.",
+    img: "/team/3.jpg" // 🔴 Третье фото
+  },
+  {
+    name: "Sarah L.",
+    role: "Product Owner",
+    desc: "Отвечает за красоту и смысл. Следит, чтобы автоматизация приносила деньги, а не просто работала.",
+    img: "/team/4.jpg" // 🔴 Четвертое фото
+  }
+];
+---
+
+<!-- ABOUT SECTION (TEAM) -->
+<section id="about" class="py-24 bg-background relative z-20">
+  <div class="container mx-auto px-4">
+    <div class="reveal-on-scroll max-w-4xl mx-auto mb-16 text-center">
+      <h2 class="text-4xl lg:text-5xl font-bold mb-6 text-foreground">
+        Команда за кодом
+      </h2>
+      <p class="text-xl text-muted-foreground">
+        Гибридная команда экспертов и автономных AI-агентов, работающих синхронно.
+      </p>
+    </div>
+    
+    <!-- СЕТКА С КАРТОЧКАМИ -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+      {team.map((member, index) => (
+        <div 
+          class="reveal-on-scroll group bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300"
+          style={`transition-delay: ${index * 100}ms`}
+        >
+          <!-- Блок с картинкой -->
+          <div class="aspect-square w-full overflow-hidden bg-muted/20 relative">
+             <img 
+               src={member.img} 
+               alt={member.name} 
+               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+             />
+             <!-- Градиент снизу, чтобы текст читался -->
+             <div class="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-90"></div>
+          </div>
+          
+          <!-- Блок с текстом -->
+          <div class="p-6 relative -mt-16"> <!-- -mt-16 поднимает текст на картинку -->
+            <div class="inline-block px-3 py-1 mb-2 text-xs font-mono text-primary bg-primary/10 border border-primary/20 rounded-full backdrop-blur-md">
+              {member.role}
+            </div>
+            <h3 class="text-xl font-bold text-foreground mb-2">{member.name}</h3>
+            <p class="text-sm text-muted-foreground leading-relaxed">
+              {member.desc}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTIONS SECTION (Остальные блоки, не трогаем, они должны быть ниже) -->
+<section id="solutions" class="py-24 bg-card border-y border-border relative z-20">
+    <div class="container mx-auto px-4">
+      <div class="reveal-on-scroll max-w-4xl mx-auto mb-16 text-center">
+        <h2 class="text-4xl lg:text-5xl font-bold mb-4">
+          Решения
+        </h2>
+        <p class="text-xl text-muted-foreground">
+          Автоматизация, которая приносит деньги
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div class="reveal-on-scroll bg-card rounded-2xl p-8 border border-border hover:border-primary/50 transition-all duration-300">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <Zap className="w-6 h-6" />
+            </div>
+            <div>
+               <h3 class="text-2xl font-bold mb-2">Автономный SMM</h3>
+               <p class="text-muted-foreground">Полная автоматизация соцсетей: контент-план, копирайтинг, дизайн и постинг без участия человека.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal-on-scroll bg-card rounded-2xl p-8 border border-border hover:border-primary/50 transition-all duration-300">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Network className="w-6 h-6" />
+              </div>
+              <div>
+                 <h3 class="text-2xl font-bold mb-2">Telegram Платформы</h3>
+                 <p class="text-muted-foreground">Сложные боты: HR-сервисы, доски объявлений, платные сообщества и Mini Apps.</p>
+              </div>
+            </div>
+        </div>
+
+        <div class="reveal-on-scroll bg-card rounded-2xl p-8 border border-border hover:border-primary/50 transition-all duration-300">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Cpu className="w-6 h-6" />
+              </div>
+              <div>
+                 <h3 class="text-2xl font-bold mb-2">AI Агенты & RAG</h3>
+                 <p class="text-muted-foreground">Умные ассистенты, обученные на ваших данных (Qdrant). Четкие ответы без галлюцинаций.</p>
+              </div>
+            </div>
+        </div>
+
+        <div class="reveal-on-scroll bg-card rounded-2xl p-8 border border-border hover:border-primary/50 transition-all duration-300">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Container className="w-6 h-6" />
+              </div>
+              <div>
+                 <h3 class="text-2xl font-bold mb-2">Лечение Систем</h3>
+                 <p class="text-muted-foreground">Аудит и починка автоматизаций, которые постоянно падают. Делаем надежно.</p>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+</section>
+
+<!-- APPROACH SECTION -->
+<section class="py-24 bg-card relative z-20">
+    <div class="container mx-auto px-4 max-w-5xl">
+        <div class="reveal-on-scroll text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6">Мой Подход</h2>
+        </div>
+        <div class="grid md:grid-cols-2 gap-12">
+            <div class="space-y-8">
+                <div class="flex gap-4">
+                    <Shield className="w-8 h-8 text-primary shrink-0" />
+                    <div>
+                        <h3 class="text-xl font-bold">Надежность важнее скорости</h3>
+                        <p class="text-muted-foreground">Я строю надолго. Система, которая работает стабильно, ценнее той, что собрана быстро, но падает.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <Cloud className="w-8 h-8 text-primary shrink-0" />
+                    <div>
+                        <h3 class="text-xl font-bold">Low-Code + Code</h3>
+                        <p class="text-muted-foreground">n8n для скорости сборки, чистый код (TypeScript/Go) для сложной логики. Лучшее из двух миров.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Сюда потом вставим твою вертикальную инфографику -->
+             <div class="rounded-2xl overflow-hidden border border-border bg-card p-2 flex items-center justify-center bg-muted/10 h-96">
+                <p class="text-muted-foreground">Место для Инфографики</p>
+            </div>
+        </div>
+    </div>
+</section>
