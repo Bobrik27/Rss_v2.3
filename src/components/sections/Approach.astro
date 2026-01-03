@@ -21,7 +21,7 @@ const { data, title, sub } = Astro.props;
       </p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-stretch">
       <!-- Left: principles grid -->
       <div class="space-y-8">
         {data.map((principle, idx) => {
@@ -49,13 +49,13 @@ const { data, title, sub } = Astro.props;
       </div>
 
       <!-- Right: custom image -->
-      <div class="relative">
-        <div class="relative w-full h-96 rounded-3xl overflow-hidden border border-border bg-card/20 flex items-center justify-center">
+      <div class="relative h-full self-stretch max-h-[728px]">
+        <div class="relative w-full h-full rounded-3xl overflow-hidden border border-border bg-card/20 flex items-center justify-center">
           <!-- Placeholder for your image -->
           <img
             src="/images/approach-visual.png"
             alt="Process Flow"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-contein"
           />
           <!-- Optional overlay text -->
           <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-center">
