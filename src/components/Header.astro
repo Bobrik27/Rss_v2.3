@@ -9,30 +9,38 @@ interface Props {
 
 const { lang } = Astro.props;
 const dictionary = ui[lang as keyof typeof ui] || ui.ru;
+const { pathname } = Astro.url;
+
+const navItems = [
+  { name: dictionary.nav.home, href: `/${lang}` },
+  { name: dictionary.nav.about, href: `/${lang}/about` },
+  { name: dictionary.nav.portfolio, href: `/${lang}/portfolio` },
+  { name: dictionary.nav.blog, href: `/${lang}/blog` },
+  { name: dictionary.nav.contact, href: `/${lang}/contact` },
+];
 ---
 
 <header class="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
   <div class="container mx-auto px-4 py-4 flex items-center justify-between">
     <a href={`/${lang}`} class="text-2xl font-bold tracking-tight">
-      Run Swift Studio
+      Run Swift <span class="text-primary">Studio</span>
     </a>
 
     <nav class="hidden md:flex items-center gap-8">
-      <a href={`/${lang}`} class="text-text hover:text-primary transition-colors">
-        {dictionary.nav.home}
-      </a>
-      <a href={`/${lang}/about`} class="text-text hover:text-primary transition-colors">
-        {dictionary.nav.about}
-      </a>
-      <a href={`/${lang}/portfolio`} class="text-text hover:text-primary transition-colors">
-        {dictionary.nav.portfolio}
-      </a>
-      <a href={`/${lang}/blog`} class="text-text hover:text-primary transition-colors">
-        {dictionary.nav.blog}
-      </a>
-      <a href={`/${lang}/contact`} class="text-text hover:text-primary transition-colors">
-        {dictionary.nav.contact}
-      </a>
+      {navItems.map((item) => {
+        const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+        return (
+          <a
+            href={item.href}
+            class={`relative flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive ? "text-foreground" : "text-muted-foreground"}`}
+          >
+            {isActive && (
+              <span class="absolute -left-3 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(34,211,238,0.8)]"></span>
+            )}
+            {item.name}
+          </a>
+        );
+      })}
     </nav>
 
     <div class="flex items-center gap-4">
