@@ -1,7 +1,6 @@
 ---
 import { ui } from '../i18n/ui.ts';
 import LanguagePicker from './LanguagePicker.astro';
-import ThemeToggle from './ThemeToggle.tsx';
 
 interface Props {
   lang: string;
@@ -45,7 +44,12 @@ const navItems = [
 
     <div class="flex items-center gap-4">
       <LanguagePicker lang={lang} />
-      <ThemeToggle client:load />
+      <a
+        href="#contact"
+        class="hidden sm:inline-flex h-9 items-center justify-center rounded-full border border-border bg-card/50 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/10 hover:border-primary/50 hover:text-primary"
+      >
+        Заказать бота
+      </a>
     </div>
   </div>
 </header>

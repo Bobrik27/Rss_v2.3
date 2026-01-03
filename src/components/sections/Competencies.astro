@@ -22,7 +22,7 @@ const { data, title, sub } = Astro.props;
       {data.map((item) => {
         const Icon = item.icon;
         return (
-          <div class="group bg-[#1e293b]/40 backdrop-blur-sm border border-white/5 p-8 rounded-2xl hover:border-primary/50 hover:bg-[#1e293b]/60 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+          <div class="group bg-card border border-border p-8 rounded-2xl hover:border-primary/50 hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
             <!-- Header Row: Icon + Title -->
             <div class="flex items-center gap-4 mb-6">
               <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
