@@ -1,0 +1,144 @@
+---
+interface Props {
+  lang?: 'ru' | 'en' | 'de';
+}
+
+const { lang = 'ru' } = Astro.props;
+
+// Translation dictionary
+const translations = {
+  ru: {
+    title: 'Команда за кодом',
+    subtitle: 'Гибридная команда экспертов и AI-агентов.',
+    members: [
+      {
+        name: 'Elena V.',
+        role: 'System Analyst',
+        desc: 'Переводит хаос в логику. Видит структуру там, где другие видят бардак.',
+        img: '/team/1.jpg'
+      },
+      {
+        name: 'Alex K.',
+        role: 'Lead Engineer',
+        desc: 'Мастер n8n. Соединяет несоединимое, пишет сложные API интеграции.',
+        img: '/team/2.jpg'
+      },
+      {
+        name: 'Marcus R.',
+        role: 'DevOps Architect',
+        desc: 'Отвечает за аптайм 99.9%. Docker, безопасность и мониторинг.',
+        img: '/team/3.jpg'
+      },
+      {
+        name: 'Sarah L.',
+        role: 'Product Owner',
+        desc: 'Следит, чтобы автоматизация приносила деньги, а не просто работала.',
+        img: '/team/4.jpg'
+      }
+    ]
+  },
+  en: {
+    title: 'The Team Behind the Code',
+    subtitle: 'A hybrid team of experts and autonomous AI agents.',
+    members: [
+      {
+        name: 'Elena V.',
+        role: 'System Analyst',
+        desc: 'Translates chaos into logic. Sees structure where others see a mess.',
+        img: '/team/1.jpg'
+      },
+      {
+        name: 'Alex K.',
+        role: 'Lead Engineer',
+        desc: 'n8n master. Connects the unconnectable, writes complex API integrations.',
+        img: '/team/2.jpg'
+      },
+      {
+        name: 'Marcus R.',
+        role: 'DevOps Architect',
+        desc: 'Responsible for 99.9% uptime. Docker, security, and monitoring.',
+        img: '/team/3.jpg'
+      },
+      {
+        name: 'Sarah L.',
+        role: 'Product Owner',
+        desc: 'Ensures automation brings revenue, not just works.',
+        img: '/team/4.jpg'
+      }
+    ]
+  },
+  de: {
+    title: 'Das Team hinter dem Code',
+    subtitle: 'Ein hybrides Team aus Experten und autonomen KI-Agenten.',
+    members: [
+      {
+        name: 'Elena V.',
+        role: 'System Analyst',
+        desc: 'Übersetzt Chaos in Logik. Sieht Struktur, wo andere ein Chaos sehen.',
+        img: '/team/1.jpg'
+      },
+      {
+        name: 'Alex K.',
+        role: 'Lead Engineer',
+        desc: 'n8n‑Experte. Verbindet das Unverbindbare, schreibt komplexe API‑Integrationen.',
+        img: '/team/2.jpg'
+      },
+      {
+        name: 'Marcus R.',
+        role: 'DevOps Architect',
+        desc: 'Verantwortlich für 99,9 % Verfügbarkeit. Docker, Sicherheit und Monitoring.',
+        img: '/team/3.jpg'
+      },
+      {
+        name: 'Sarah L.',
+        role: 'Product Owner',
+        desc: 'Sorgt dafür, dass Automatisierung Geld einbringt, nicht nur funktioniert.',
+        img: '/team/4.jpg'
+      }
+    ]
+  }
+};
+
+const t = translations[lang] || translations.ru;
+---
+
+<section id="team" class="py-24 bg-background relative z-20">
+  <div class="container mx-auto px-4">
+    <div class="reveal-on-scroll max-w-4xl mx-auto mb-16 text-center">
+      <h2 class="text-4xl lg:text-5xl font-bold mb-6 text-foreground">
+        {t.title}
+      </h2>
+      <p class="text-xl text-muted-foreground">
+        {t.subtitle}
+      </p>
+    </div>
+    
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+      {t.members.map((member, index) => (
+        <div 
+          class="reveal-on-scroll group bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300"
+          style={`transition-delay: ${index * 100}ms`}
+        >
+          <div class="aspect-square w-full overflow-hidden bg-muted/20 relative">
+             <img 
+               src={member.img} 
+               alt={member.name} 
+               class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+               style="object-position: 50% 20%;"
+             />
+             <div class="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-90"></div>
+          </div>
+          <div class="p-6 relative -mt-16">
+            <div class="inline-block px-3 py-1 mb-2 text-xs font-mono text-primary bg-primary/10 border border-primary/20 rounded-full backdrop-blur-md">
+              {member.role}
+            </div>
+            <h3 class="text-xl font-bold text-foreground mb-2">{member.name}</h3>
+            <p class="text-sm text-muted-foreground leading-relaxed">
+              {member.desc}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

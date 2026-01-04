@@ -5,6 +5,7 @@ import About from '../../components/sections/About.astro';
 import Competencies from '../../components/sections/Competencies.astro';
 import Solutions from '../../components/sections/Solutions.astro';
 import Approach from '../../components/sections/Approach.astro';
+import Team from '../../components/sections/Team.astro';
 import CTA from '../../components/sections/CTA.astro';
 import { getLandingData } from '../../data/landing';
 
@@ -51,6 +52,11 @@ const data = getLandingData(lang || 'ru');
                 title={data.texts.approachTitle}
                 sub={data.texts.approachSub}
             />
+        </div>
+
+        <!-- Team Section -->
+        <div class="relative z-10 bg-background py-20">
+            <Team lang={lang} />
         </div>
 
         <!-- CTA Section -->
