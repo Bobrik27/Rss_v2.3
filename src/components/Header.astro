@@ -1,5 +1,6 @@
 ---
 import LanguagePicker from './LanguagePicker.astro';
+import { content } from '../i18n/content';
 
 interface Props {
   lang: string;
@@ -7,6 +8,9 @@ interface Props {
 
 const { lang } = Astro.props;
 const { pathname } = Astro.url;
+
+const validLang = (['en', 'de', 'ru'] as const).includes(lang as any) ? lang as keyof typeof content : 'ru';
+const translations = content[validLang];
 
 const navItems = [
   { name: "Услуги", href: "#solutions" },
@@ -57,7 +61,7 @@ const navItems = [
         rel="noopener noreferrer"
         class="hidden sm:inline-flex h-9 items-center justify-center rounded-full border border-border bg-card/50 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/10 hover:border-primary/50 hover:text-primary"
       >
-        Заказать бота
+        {translations.hero.cta}
       </a>
     </div>
   </div>

@@ -18,13 +18,14 @@ export function getStaticPaths() {
 }
 
 const { lang } = Astro.params;
-const data = getLandingData(lang || 'ru');
+const validLang = (lang === 'ru' || lang === 'en' || lang === 'de') ? lang : 'ru';
+const data = getLandingData(validLang);
 ---
 
-<Layout title="Run Swift Studio" lang={lang}>
+<Layout title="Run Swift Studio" lang={validLang}>
     <main class="relative">
         <!-- The Hero Section -->
-        <StaticHero lang={lang} />
+        <StaticHero lang={validLang} />
         
         <!-- About Section -->
         <div class="relative z-10 bg-background">
@@ -56,12 +57,12 @@ const data = getLandingData(lang || 'ru');
 
         <!-- Team Section -->
         <div class="relative z-10 bg-background py-20">
-            <Team lang={lang} />
+            <Team lang={validLang} />
         </div>
 
         <!-- CTA Section -->
         <div class="relative z-10 bg-background">
-            <CTA data={data.cta} />
+            <CTA data={data.cta} lang={validLang} />
         </div>
     </main>
 </Layout>
