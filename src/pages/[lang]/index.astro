@@ -7,6 +7,7 @@ import Solutions from '../../components/sections/Solutions.astro';
 import Approach from '../../components/sections/Approach.astro';
 import Team from '../../components/sections/Team.astro';
 import CTA from '../../components/sections/CTA.astro';
+import Services from '../../components/landing/Services.astro';
 import { getLandingData } from '../../data/landing';
 
 export function getStaticPaths() {
@@ -30,6 +31,11 @@ const data = getLandingData(validLang);
         <!-- Strategy Section (formerly About) -->
         <div class="relative z-10 bg-background">
             <About lang={validLang} />
+        </div>
+
+        <!-- Services Section -->
+        <div class="relative z-10 bg-background">
+            <Services lang={validLang} />
         </div>
 
         <!-- Competencies & Solutions Sections -->

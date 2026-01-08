@@ -76,8 +76,90 @@ export const content = {
           text: "We create working prototypes, bots, and mini-services through direct dialogue with code. This allows us to launch solutions many times faster than classic development, while maintaining configuration flexibility."
         }
       }
+    },
+    services: {
+      title: "Services & Solutions",
+      subtitle: "From focused audit to autonomous digital ecosystems. Transparent pricing and business focus.",
+      badge: "Price List 2026",
+      consultServices: [
+        {
+          title: "AI & Web Audit",
+          description: "Deep technical analysis of your website, SEO, usability and infrastructure readiness for AI agent implementation.",
+          price: "35,000",
+          icon: "🔍"
+        },
+        {
+          title: "Requirements Development",
+          description: "Professional project architecture design. Ready documents for developers with logic and connections.",
+          price: "45,000",
+          icon: "📄"
+        }
+      ],
+      tiers: [
+        {
+          id: "mvp",
+          name: "Quick Start",
+          subtitle: "MVP / Vibe-coding",
+          price: "50,000",
+          duration: "2-5 days",
+          description: "Testing hypotheses and quick automation of specific narrow tasks.",
+          features: [
+            "Service prototype creation",
+            "Simple AI agent / Telegram bot",
+            "Automation of 1-2 routine steps",
+            "Logic setup through dialogue"
+          ],
+          icon: "⚡",
+          color: "amber",
+          popular: false
+        },
+        {
+          id: "business",
+          name: "Business Architecture",
+          subtitle: "Orchestration & Scale",
+          price: "150,000",
+          duration: "2-4 weeks",
+          description: "Deep department automation. System orchestration for stable operation.",
+          features: [
+            "Connection of 5+ services via n8n",
+            "AI Council System (Multi-LLM)",
+            "Content chain automation",
+            "Optimization of existing systems",
+            "Staff instructions"
+          ],
+          icon: "🔄",
+          color: "blue",
+          popular: true
+        },
+        {
+          id: "enterprise",
+          name: "Enterprise AI",
+          subtitle: "Autonomous Ecosystem",
+          price: "350,000",
+          duration: "from 1 month",
+          description: "Implementation of autonomous agents into company core with maximum protection.",
+          features: [
+            "Full department automation",
+            "RAG systems (Knowledge bases)",
+            "Custom AI agents 'turnkey'",
+            "Training and maintenance",
+            "Priority support"
+          ],
+          icon: "👑",
+          color: "purple",
+          popular: false
+        }
+      ],
+      security: {
+        title: "Security and NDA",
+        description: "We understand the value of commercial data. All developments are protected by non-disclosure agreement. Your prompts and knowledge bases are your property."
+      },
+      techStack: {
+        title: "Tech Stack"
+      },
+      fromLabel: "from"
     }
-  },
+ },
   de: {
     hero: {
       tagline: "KI-Automatisierungs-Architekt",
@@ -146,7 +228,7 @@ export const content = {
           title: "Autonome Agenten",
           subtitle: "Autonome Agenten",
           tag: "Automatisierung",
-          text: "Entwicklung digitaler Mitarbeiter auf Basis von n8n und Make. Wir automatisieren Routine, schaffen Agenten, die selbst Entscheidungen treffen und den Prozess ohne Ihr Zutun zum Abschluss bringen."
+          text: "Entwicklung digitaler Mitarbeiter auf Basis von n8n und Make. Wir automatisieren Routine, schappen Agenten, die selbst Entscheidungen treffen und den Prozess ohne Ihr Zutun zum Abschluss bringen."
         },
         vibe: {
           title: "Vibe-Coding",
@@ -155,6 +237,88 @@ export const content = {
           text: "Wir erstellen funktionierende Prototypen, Bots und Mini-Dienste durch direkten Dialog mit dem Code. So können wir Lösungen um ein Vielfaches schneller starten als die klassische Entwicklung, bei gleichbleibender Konfigurationsflexibilität."
         }
       }
+    },
+    services: {
+      title: "Dienstleistungen & Lösungen",
+      subtitle: "Vom gezielten Audit bis hin zu autonomen digitalen Ökosystemen. Transparente Preisgestaltung und fokussiert auf das Geschäft.",
+      badge: "Preisliste 2026",
+      consultServices: [
+        {
+          title: "KI & Web-Audit",
+          description: "Tiefe technische Analyse Ihrer Website, SEO, Usability und Infrastruktur-Bereitschaft für KI-Agenten-Implementierung.",
+          price: "35.000",
+          icon: "🔍"
+        },
+        {
+          title: "Anforderungsdefinition",
+          description: "Professionelles Projektarchitekturdesign. Fertige Dokumente für Entwickler mit Logik und Verbindungen.",
+          price: "45.000",
+          icon: "📄"
+        }
+      ],
+      tiers: [
+        {
+          id: "mvp",
+          name: "Schneller Start",
+          subtitle: "MVP / Vibe-Coding",
+          price: "50.000",
+          duration: "2-5 Tage",
+          description: "Testen von Hypothesen und schnelle Automatisierung spezifischer eng definierter Aufgaben.",
+          features: [
+            "Erstellung eines Service-Prototyps",
+            "Einfacher KI-Agent / Telegram-Bot",
+            "Automatisierung von 1-2 Routineaufgaben",
+            "Logik-Einrichtung über Dialog"
+          ],
+          icon: "⚡",
+          color: "amber",
+          popular: false
+        },
+        {
+          id: "business",
+          name: "Geschäftsarchitektur",
+          subtitle: "Orchestrierung & Skalierung",
+          price: "150.000",
+          duration: "2-4 Wochen",
+          description: "Tiefe Abteilungsautomatisierung. System-Orchestrierung für stabilen Betrieb.",
+          features: [
+            "Verbindung von 5+ Diensten über n8n",
+            "KI-Rat-System (Multi-LLM)",
+            "Inhaltsketten-Automatisierung",
+            "Optimierung bestehender Systeme",
+            "Mitarbeiteranweisungen"
+          ],
+          icon: "🔄",
+          color: "blue",
+          popular: true
+        },
+        {
+          id: "enterprise",
+          name: "Enterprise KI",
+          subtitle: "Autonomes Ökosystem",
+          price: "350.000",
+          duration: "ab 1 Monat",
+          description: "Implementierung autonomer Agenten in das Unternehmenskern mit maximalem Schutz.",
+          features: [
+            "Vollständige Abteilungsautomatisierung",
+            "RAG-Systeme (Wissensbasen)",
+            "Individuelle KI-Agenten 'schlüsselfertig'",
+            "Schulung und Wartung",
+            "Priorisierter Support"
+          ],
+          icon: "👑",
+          color: "purple",
+          popular: false
+        }
+      ],
+      security: {
+        title: "Sicherheit und Geheimhaltung",
+        description: "Wir verstehen den Wert von Geschäftsdaten. Alle Entwicklungen sind durch eine Vereinbarung zur Vertraulichkeit geschützt. Ihre Prompts und Wissensbasen sind Ihr Eigentum."
+      },
+      techStack: {
+        title: "Technologie-Stack"
+      },
+      fromLabel: "ab"
     }
   },
   ru: {
@@ -234,6 +398,88 @@ export const content = {
           text: "Создаем рабочие прототипы, ботов и мини-сервисы через прямой диалог с кодом. Это позволяет нам запускать решения в разы быстрее классической разработки, сохраняя гибкость настроек."
         }
       }
+    },
+    services: {
+      title: "Услуги и решения",
+      subtitle: "От точечного аудита до создания автономных цифровых экосистем. Прозрачное ценообразование и фокус на бизнес-результат.",
+      badge: "Прайс-лист 2026",
+      consultServices: [
+        {
+          title: "AI & Web Аудит",
+          description: "Глубокий технический анализ вашего сайта, SEO, юзабилити и готовности инфраструктуры к внедрению ИИ-агентов.",
+          price: "35 000",
+          icon: "🔍"
+        },
+        {
+          title: "Разработка ТЗ",
+          description: "Профессиональное проектирование архитектуры будущего проекта. Готовый документ для разработчиков с логикой и связками.",
+          price: "45 000",
+          icon: "📄"
+        }
+      ],
+      tiers: [
+        {
+          id: "mvp",
+          name: "Быстрый старт",
+          subtitle: "MVP / Vibe-coding",
+          price: "50 000",
+          duration: "2-5 дней",
+          description: "Проверка гипотез и быстрая автоматизация конкретных узких задач.",
+          features: [
+            "Создание прототипа сервиса",
+            "Простой AI-агент / Telegram-бот",
+            "Автоматизация 1-2 шагов рутины",
+            "Настройка логики через диалог"
+          ],
+          icon: "⚡",
+          color: "amber",
+          popular: false
+        },
+        {
+          id: "business",
+          name: "Бизнес-архитектура",
+          subtitle: "Orchestration & Scale",
+          price: "150 000",
+          duration: "2-4 недели",
+          description: "Глубокая автоматизация отделов. Оркестрация систем для стабильной работы.",
+          features: [
+            "Связка 5+ сервисов через n8n",
+            "Система «Совет AI» (Multi-LLM)",
+            "Автоматизация цепочек контента",
+            "Оптимизация существующих систем",
+            "Инструкции для персонала"
+          ],
+          icon: "🔄",
+          color: "blue",
+          popular: true
+        },
+        {
+          id: "enterprise",
+          name: "Enterprise AI",
+          subtitle: "Autonomous Ecosystem",
+          price: "350 000",
+          duration: "от 1 месяца",
+          description: "Внедрение автономных агентов в ядро компании с максимальной защитой.",
+          features: [
+            "Полная автоматизация департамента",
+            "RAG-системы (Базы знаний)",
+            "Кастомные AI-агенты «под ключ»",
+            "Обучение и сопровождение",
+            "Приоритетная поддержка"
+          ],
+          icon: "👑",
+          color: "purple",
+          popular: false
+        }
+      ],
+      security: {
+        title: "Безопасность и NDA",
+        description: "Мы понимаем ценность коммерческих данных. Все разработки защищены соглашением о неразглашении. Ваши промпты и базы знаний — это ваша собственность."
+      },
+      techStack: {
+        title: "Стек технологий"
+      },
+      fromLabel: "от"
     }
   }
 };
