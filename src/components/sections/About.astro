@@ -24,22 +24,25 @@ const cards = Object.values(strategy.cards);
 
 <section class="py-24 bg-background text-foreground overflow-hidden">
   <div class="container mx-auto px-6">
-    <div class="flex flex-col lg:flex-row gap-16 items-start">
+    <div class="flex flex-col lg:flex-row gap-12 items-start">
       
       <!-- Контентная часть (Лево) -->
-      <div class="lg:w-1/2 lg:sticky lg:top-24">
+      <div class="lg:w-1/2 lg:sticky lg:top-24 pt-0">
         <div class="inline-block px-4 py-1.5 mb-6 text-sm font-medium tracking-wider uppercase border border-white/10 rounded-full bg-white/5">
-          Стратегия 2026
+          {strategy.badge}
         </div>
-        <h2 class="text-5xl lg:text-6xl font-bold mb-8 leading-[1.1] bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
+        <h2 class="text-5xl lg:text-6xl font-bold mb-6 leading-[1.1] bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
           {strategy.title}
         </h2>
         <div class="space-y-6 text-muted-foreground text-lg leading-relaxed max-w-xl">
           <p>
             {strategy.mainText}
           </p>
+          <p>
+            {strategy.extraParagraph}
+          </p>
           <p class="pt-4 border-t border-white/10">
-            Ваш бизнес получает не просто инструмент, а надежного цифрового сотрудника, который работает на пике технологий будущего уже сегодня.
+            {strategy.finalNote}
           </p>
         </div>
       </div>
@@ -48,9 +51,16 @@ const cards = Object.values(strategy.cards);
       <div class="lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-4">
         {cards.map((card, index) => {
           const icon = icons[index];
+          // Цвета свечения в зависимости от индекса
+          const glowColors = [
+            'hover:border-blue-500/50 hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.5)]',
+            'hover:border-purple-500/50 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.5)]',
+            'hover:border-emerald-500/50 hover:shadow-[0_0_30px_-10px_rgba(16,185,129,0.5)]',
+            'hover:border-amber-500/50 hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.5)]'
+          ];
           return (
             <div
-              class="group relative p-8 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-500"
+              class={`group relative p-8 rounded-3xl border border-white/5 bg-white/[0.02] transition-all duration-500 ${glowColors[index]}`}
             >
               <div class="mb-6 p-3 inline-block rounded-2xl bg-white/5 group-hover:scale-110 transition-transform duration-500" set:html={icon}></div>
               
@@ -66,11 +76,6 @@ const cards = Object.values(strategy.cards);
               <p class="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground/80 transition-colors">
                 {card.text}
               </p>
-
-              <div class="mt-6 flex items-center text-xs font-medium text-white/20 group-hover:text-white/60 transition-colors">
-                Подробнее
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1 w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-              </div>
             </div>
           );
         })}

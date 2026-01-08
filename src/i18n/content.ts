@@ -46,7 +46,10 @@ export const content = {
     },
     strategy: {
       title: "Beyond AI: Orchestrating the Future",
-      mainText: "By 2026, the gap between those who just 'play' with chatbots and those who integrate AI into the core of their business will become insurmountable. We don't just write prompts—we build autonomous ecosystems. In a world where content is becoming too much, we bet on quality, data verifiability, and 'human taste'. Our task is to turn neural networks from a toy into a reliable digital employee that saves hundreds of hours of your team. We take on all the technical complexity: from fighting AI hallucinations to orchestrating dozens of services into a single seamless process.",
+      badge: "Strategy 2026",
+      mainText: "By 2026, the gap between those who just 'play' with chatbots and those who integrate AI into the core of their business will become insurmountable. We don't just write prompts—we build autonomous ecosystems. In a world where content is becoming too much, we bet on quality, data verifiability, and 'human taste'.",
+      extraParagraph: "Our task is to turn neural networks from a toy into a reliable digital employee that saves hundreds of hours of your team. We take on all the technical complexity: from fighting AI hallucinations to orchestrating dozens of services into a single seamless process.",
+      finalNote: "Your business gets not just a tool, but a reliable digital employee that works at the peak of future technologies today.",
       cards: {
         council: {
           title: "AI Council",
@@ -122,7 +125,10 @@ export const content = {
     },
     strategy: {
       title: "Beyond AI: Die Orchestrierung der Zukunft",
-      mainText: "Bis 2026 wird die Kluft zwischen denen, die nur mit Chatbots 'spielen', und denen, die KI in den Kern ihres Geschäfts integrieren, unüberwindbar werden. Wir schreiben nicht nur Prompts – wir bauen autonome Ökosysteme. In einer Welt, in der Inhalte zu viel werden, setzen wir auf Qualität, Datenüberprüfbarkeit und 'menschlichen Geschmack'. Unsere Aufgabe ist es, neuronale Netze von einem Spielzeug zu einem zuverlässigen digitalen Mitarbeiter zu machen, der Hunderte von Stunden Ihres Teams einspart. Wir übernehmen die gesamte technische Komplexität: vom Kampf gegen KI-Halluzinationen bis zur Orchestrierung Dutzender Dienste zu einem nahtlosen Prozess.",
+      badge: "Strategie 2026",
+      mainText: "Bis 2026 wird die Kluft zwischen denen, die nur mit Chatbots 'spielen', und denen, die KI in den Kern ihres Geschäfts integrieren, unüberwindbar werden. Wir schreiben nicht nur Prompts – wir bauen autonome Ökosysteme. In einer Welt, in der Inhalte zu viel werden, setzen wir auf Qualität, Datenüberprüfbarkeit und 'menschlichen Geschmack'.",
+      extraParagraph: "Unsere Aufgabe ist es, neuronale Netze von einem Spielzeug zu einem zuverlässigen digitalen Mitarbeiter zu machen, der Hunderte von Stunden Ihres Teams einspart. Wir übernehmen die gesamte technische Komplexität: vom Kampf gegen KI-Halluzinationen bis zur Orchestrierung Dutzender Dienste zu einem nahtlosen Prozess.",
+      finalNote: "Ihr Unternehmen erhält nicht nur ein Werkzeug, sondern einen zuverlässigen digitalen Mitarbeiter, der bereits heute an der Spitze der Zukunftstechnologien arbeitet.",
       cards: {
         council: {
           title: "KI-Rat",
@@ -198,7 +204,10 @@ export const content = {
     },
     strategy: {
       title: "Beyond AI: Оркестрация будущего",
-      mainText: "К 2026 году разрыв между теми, кто просто 'балуется' с чат-ботами, и теми, кто внедряет ИИ в ядро бизнеса, станет непреодолимым. Мы не просто пишем промпты — мы строим автономные экосистемы. В мире, где контента становится слишком много, мы делаем ставку на качество, проверяемость данных и человеческий вкус. Наша задача — превратить нейросети из игрушки в надежного цифрового сотрудника, который экономит сотни часов вашей команды. Мы берем на себя всю техническую сложность: от борьбы с галлюцинациями ИИ до оркестрации десятков сервисов в единый бесшовный процесс.",
+      badge: "Стратегия 2026",
+      mainText: "К 2026 году разрыв между теми, кто просто 'балуется' с чат-ботами, и теми, кто внедряет ИИ в ядро бизнеса, станет непреодолимым. Мы не просто пишем промпты — мы строим автономные экосистемы. В мире, где контента становится слишком много, мы делаем ставку на качество, проверяемость данных и человеческий вкус.",
+      extraParagraph: "Наша задача — превратить нейросети из игрушки в надежного цифрового сотрудника, который экономит сотни часов вашей команды. Мы берем на себя всю техническую сложность: от борьбы с галлюцинациями ИИ до оркестрации десятков сервисов в единый процесс.",
+      finalNote: "Ваш бизнес получает не просто инструмент, а надежного цифрового сотрудника, который работает на пике технологий будущего уже сегодня.",
       cards: {
         council: {
           title: "Совет AI",
