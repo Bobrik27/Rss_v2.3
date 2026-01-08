@@ -43,7 +43,7 @@
 - `lucide-react` - иконки
 - `@types/react`, `@types/react-dom` - типы для React
 - `typescript` - язык программирования
-- `tw-animate-css` - анимации для Tailwind
+- `tw-animate-css` - анимации для Tailwind //test
 
 ## Архитектура компонентов
 
