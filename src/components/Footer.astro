@@ -23,13 +23,13 @@ const dictionary = ui[lang as keyof typeof ui] || ui.ru;
 
       <div class="flex items-center gap-6">
         <a href={`/${lang}/privacy`} class="text-text-muted hover:text-text text-sm">
-          Privacy Policy
+          {dictionary.footer.links.privacy}
         </a>
         <a href={`/${lang}/terms`} class="text-text-muted hover:text-text text-sm">
-          Terms of Service
+          {dictionary.footer.links.terms}
         </a>
         <a href="https://github.com/runswift" class="text-text-muted hover:text-text text-sm">
-          GitHub
+          {dictionary.footer.links.github}
         </a>
       </div>
     </div>

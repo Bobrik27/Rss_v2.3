@@ -26,6 +26,53 @@ export const content = {
     footer: {
       ready: "Ready to scale?",
       cta: "Book a Call"
+    },
+    cta: {
+      footnote: "Response within 24 hours • No‑commitment consultation"
+    },
+    nav: {
+      comingSoon: "Coming soon",
+      items: {
+        services: "Services",
+        cases: "Cases",
+        blog: "Blog",
+        news: "IT News"
+      }
+    },
+    buttons: {
+      discussProject: "Discuss a project",
+      getAudit: "Get a system audit",
+      calculateArchitecture: "Calculate architecture"
+    },
+    strategy: {
+      title: "Beyond AI: Orchestrating the Future",
+      mainText: "By 2026, the gap between those who just 'play' with chatbots and those who integrate AI into the core of their business will become insurmountable. We don't just write prompts—we build autonomous ecosystems. In a world where content is becoming too much, we bet on quality, data verifiability, and 'human taste'. Our task is to turn neural networks from a toy into a reliable digital employee that saves hundreds of hours of your team. We take on all the technical complexity: from fighting AI hallucinations to orchestrating dozens of services into a single seamless process.",
+      cards: {
+        council: {
+          title: "AI Council",
+          subtitle: "Multi-Model Consensus",
+          tag: "Reliability",
+          text: "We use the principle of 'model council': one task is solved by several independent neural networks (OpenAI, Anthropic, Google), criticizing each other's answers. This guarantees maximum accuracy and a balanced result."
+        },
+        orchestration: {
+          title: "System Orchestration",
+          subtitle: "Tool Chaining",
+          tag: "Architecture",
+          text: "Instead of looking for one 'perfect' neural network, we connect the best tools into unified workflows. This allows solving specific business tasks that are beyond the power of ordinary chat."
+        },
+        agents: {
+          title: "Autonomous Agents",
+          subtitle: "Autonomous Agents",
+          tag: "Automation",
+          text: "Development of digital employees based on n8n and Make. We automate routine, creating agents that make decisions themselves and bring the process to completion without your involvement."
+        },
+        vibe: {
+          title: "Vibe-coding",
+          subtitle: "Vibe Coding",
+          tag: "Speed",
+          text: "We create working prototypes, bots, and mini-services through direct dialogue with code. This allows us to launch solutions many times faster than classic development, while maintaining configuration flexibility."
+        }
+      }
     }
   },
   de: {
@@ -55,6 +102,53 @@ export const content = {
     footer: {
       ready: "Bereit zum Skalieren?",
       cta: "Termin buchen"
+    },
+    cta: {
+      footnote: "Antwort innerhalb von 24 Stunden • Unverbindliche Beratung"
+    },
+    nav: {
+      comingSoon: "Demnächst",
+      items: {
+        services: "Dienstleistungen",
+        cases: "Cases",
+        blog: "Blog",
+        news: "IT‑News"
+      }
+    },
+    buttons: {
+      discussProject: "Projekt besprechen",
+      getAudit: "Systemaudit erhalten",
+      calculateArchitecture: "Architektur berechnen"
+    },
+    strategy: {
+      title: "Beyond AI: Die Orchestrierung der Zukunft",
+      mainText: "Bis 2026 wird die Kluft zwischen denen, die nur mit Chatbots 'spielen', und denen, die KI in den Kern ihres Geschäfts integrieren, unüberwindbar werden. Wir schreiben nicht nur Prompts – wir bauen autonome Ökosysteme. In einer Welt, in der Inhalte zu viel werden, setzen wir auf Qualität, Datenüberprüfbarkeit und 'menschlichen Geschmack'. Unsere Aufgabe ist es, neuronale Netze von einem Spielzeug zu einem zuverlässigen digitalen Mitarbeiter zu machen, der Hunderte von Stunden Ihres Teams einspart. Wir übernehmen die gesamte technische Komplexität: vom Kampf gegen KI-Halluzinationen bis zur Orchestrierung Dutzender Dienste zu einem nahtlosen Prozess.",
+      cards: {
+        council: {
+          title: "KI-Rat",
+          subtitle: "Multi-Model-Konsens",
+          tag: "Zuverlässigkeit",
+          text: "Wir nutzen das Prinzip des 'Modellrats': Eine Aufgabe wird von mehreren unabhängigen neuronalen Netzen (OpenAI, Anthropic, Google) gelöst, die sich gegenseitig kritisieren. Dies garantiert maximale Genauigkeit und ein ausgewogenes Ergebnis."
+        },
+        orchestration: {
+          title: "System-Orchestrierung",
+          subtitle: "Tool-Chaining",
+          tag: "Architektur",
+          text: "Statt nach einem 'perfekten' neuronalen Netz zu suchen, verbinden wir die besten Tools zu einheitlichen Workflows. So lassen sich spezifische Geschäftsaufgaben lösen, die über die Möglichkeiten eines normalen Chats hinausgehen."
+        },
+        agents: {
+          title: "Autonome Agenten",
+          subtitle: "Autonome Agenten",
+          tag: "Automatisierung",
+          text: "Entwicklung digitaler Mitarbeiter auf Basis von n8n und Make. Wir automatisieren Routine, schaffen Agenten, die selbst Entscheidungen treffen und den Prozess ohne Ihr Zutun zum Abschluss bringen."
+        },
+        vibe: {
+          title: "Vibe-Coding",
+          subtitle: "Vibe-Coding",
+          tag: "Geschwindigkeit",
+          text: "Wir erstellen funktionierende Prototypen, Bots und Mini-Dienste durch direkten Dialog mit dem Code. So können wir Lösungen um ein Vielfaches schneller starten als die klassische Entwicklung, bei gleichbleibender Konfigurationsflexibilität."
+        }
+      }
     }
   },
   ru: {
@@ -84,6 +178,53 @@ export const content = {
     footer: {
       ready: "Готовы масштабироваться?",
       cta: "Заказать бота"
+    },
+    cta: {
+      footnote: "Ответ в течение 24 часов • Консультация без обязательств"
+    },
+    nav: {
+      comingSoon: "Скоро открытие",
+      items: {
+        services: "Услуги",
+        cases: "Кейсы",
+        blog: "Блог",
+        news: "IT Новости"
+      }
+    },
+    buttons: {
+      discussProject: "Обсудить проект",
+      getAudit: "Получить аудит систем",
+      calculateArchitecture: "Рассчитать архитектуру"
+    },
+    strategy: {
+      title: "Beyond AI: Оркестрация будущего",
+      mainText: "К 2026 году разрыв между теми, кто просто 'балуется' с чат-ботами, и теми, кто внедряет ИИ в ядро бизнеса, станет непреодолимым. Мы не просто пишем промпты — мы строим автономные экосистемы. В мире, где контента становится слишком много, мы делаем ставку на качество, проверяемость данных и человеческий вкус. Наша задача — превратить нейросети из игрушки в надежного цифрового сотрудника, который экономит сотни часов вашей команды. Мы берем на себя всю техническую сложность: от борьбы с галлюцинациями ИИ до оркестрации десятков сервисов в единый бесшовный процесс.",
+      cards: {
+        council: {
+          title: "Совет AI",
+          subtitle: "Multi-Model Consensus",
+          tag: "Надежность",
+          text: "Мы используем принцип «совета моделей»: одну задачу решают несколько независимых нейросетей (OpenAI, Anthropic, Google), критикуя ответы друг друга. Это гарантирует максимальную точность и взвешенный результат."
+        },
+        orchestration: {
+          title: "Оркестрация систем",
+          subtitle: "Tool Chaining",
+          tag: "Архитектура",
+          text: "Вместо поиска одной «идеальной» нейросети, мы соединяем лучшие инструменты в единые рабочие цепочки. Это позволяет решать специфические задачи бизнеса, которые не под силу обычному чату."
+        },
+        agents: {
+          title: "Автономные агенты",
+          subtitle: "Autonomous Agents",
+          tag: "Автоматизация",
+          text: "Разработка цифровых сотрудников на базе n8n и Make. Мы автоматизируем рутину, создавая агентов, которые сами принимают решения и доводят процесс до финала без вашего участия."
+        },
+        vibe: {
+          title: "Vibe-coding",
+          subtitle: "Vibe Coding",
+          tag: "Скорость",
+          text: "Создаем рабочие прототипы, ботов и мини-сервисы через прямой диалог с кодом. Это позволяет нам запускать решения в разы быстрее классической разработки, сохраняя гибкость настроек."
+        }
+      }
     }
   }
 };

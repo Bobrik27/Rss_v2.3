@@ -21,6 +21,11 @@ export type Dictionary = {
   footer: {
     copyright: string;
     madeWith: string;
+    links: {
+      privacy: string;
+      terms: string;
+      github: string;
+    };
   };
   theme: {
     dark: string;
@@ -46,6 +51,11 @@ export const ui: Record<Lang, Dictionary> = {
     footer: {
       copyright: '© 2025 Run Swift Studio. Все права защищены.',
       madeWith: 'Сделано с ❤️ в Барнауле.',
+      links: {
+        privacy: 'Политика конфиденциальности',
+        terms: 'Условия использования',
+        github: 'GitHub',
+      },
     },
     theme: {
       dark: 'Тёмная',
@@ -69,6 +79,11 @@ export const ui: Record<Lang, Dictionary> = {
     footer: {
       copyright: '© 2025 Run Swift Studio. All rights reserved.',
       madeWith: 'Made with ❤️ in Barnaul.',
+      links: {
+        privacy: 'Privacy Policy',
+        terms: 'Terms of Service',
+        github: 'GitHub',
+      },
     },
     theme: {
       dark: 'Dark',
@@ -92,6 +107,11 @@ export const ui: Record<Lang, Dictionary> = {
     footer: {
       copyright: '© 2025 Run Swift Studio. Alle Rechte vorbehalten.',
       madeWith: 'Hergestellt mit ❤️ in Barnaul.',
+      links: {
+        privacy: 'Datenschutzrichtlinie',
+        terms: 'Nutzungsbedingungen',
+        github: 'GitHub',
+      },
     },
     theme: {
       dark: 'Dunkel',

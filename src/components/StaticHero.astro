@@ -7,7 +7,8 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 const validLang = (['en', 'de', 'ru'] as const).includes(lang as any) ? lang as keyof typeof content : 'en';
-const hero = content[validLang].hero;
+const t = content[validLang];
+const hero = t.hero;
 ---
 
 <section class="relative min-h-screen flex items-center justify-center bg-background overflow-hidden">
@@ -36,7 +37,7 @@ const hero = content[validLang].hero;
           rel="noopener noreferrer"
           class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg shadow-primary/20"
         >
-          {hero.cta}
+          {t.buttons.discussProject}
         </a>
         <a
           href="#solutions"

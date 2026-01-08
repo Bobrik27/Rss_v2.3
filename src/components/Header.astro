@@ -13,10 +13,26 @@ const validLang = (['en', 'de', 'ru'] as const).includes(lang as any) ? lang as 
 const translations = content[validLang];
 
 const navItems = [
-  { name: "Услуги", href: "#solutions" },
-  { name: "Кейсы", href: "#cases" },
-  { name: "Блог", href: "/blog" },
-  { name: "IT Новости", href: "/news" },
+  {
+    name: translations.nav.items.services,
+    href: "#solutions",
+    comingSoon: false
+  },
+  {
+    name: translations.nav.items.cases,
+    href: "#cases",
+    comingSoon: true
+  },
+  {
+    name: translations.nav.items.blog,
+    href: "/blog",
+    comingSoon: true
+  },
+  {
+    name: translations.nav.items.news,
+    href: "/news",
+    comingSoon: false
+  },
 ];
 ---
 
@@ -35,18 +51,22 @@ const navItems = [
     <!-- Desktop Navigation -->
     <nav class="hidden md:flex items-center gap-8">
       {navItems.map((item) => {
-        // Простая логика активности (можно усложнить для якорей через JS, но пока так)
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+        const isComingSoon = item.comingSoon;
         
         return (
           <a
-            href={item.href}
-            class={`relative flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${isActive ? "text-foreground" : "text-muted-foreground"}`}
+            href={isComingSoon ? "#" : item.href}
+            title={isComingSoon ? translations.nav.comingSoon : undefined}
+            class={`relative flex items-center gap-2 text-sm font-medium transition-colors ${isComingSoon ? "opacity-50 pointer-events-none" : "hover:text-primary"} ${isActive ? "text-foreground" : "text-muted-foreground"}`}
           >
             {isActive && (
               <span class="absolute -left-3 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(34,211,238,0.8)]"></span>
             )}
             {item.name}
+            {isComingSoon && (
+              <span class="text-xs text-muted-foreground/60">*</span>
+            )}
           </a>
         );
       })}
@@ -61,7 +81,7 @@ const navItems = [
         rel="noopener noreferrer"
         class="hidden sm:inline-flex h-9 items-center justify-center rounded-full border border-border bg-card/50 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/10 hover:border-primary/50 hover:text-primary"
       >
-        {translations.hero.cta}
+        {translations.buttons.discussProject}
       </a>
     </div>
   </div>

@@ -35,97 +35,97 @@ export const getLandingData = (lang: string) => {
     ctaButton: isRu ? "Начать диалог" : isDe ? "Gespräch beginnen" : "Start a conversation"
   };
 
-  // TECHNICAL STACK (The Manifesto)
+  // BUSINESS‑FOCUSED COMPETENCIES (Benefits‑driven)
   const competencies = [
     {
-      title: isRu ? "Архитектура и Автоматизация" : isDe ? "Architektur & Automatisierung" : "Architecture & Automation",
+      title: isRu ? "Надёжная архитектура, которая масштабируется" : isDe ? "Zuverlässige Architektur, die skaliert" : "Reliable Architecture That Scales",
       icon: Server,
       items: isRu ? [
-        "Event-Driven архитектура",
-        "Паттерны Orchestrator / Worker",
-        "State Machines (FSM)",
-        "Отказоустойчивые пайплайны"
+        "Снижаем риски сбоев",
+        "Ускоряем обработку данных",
+        "Обеспечиваем отказоустойчивость",
+        "Автоматизируем рутину"
       ] : isDe ? [
-        "Event-Driven-Architektur",
-        "Orchestrator/Worker-Muster",
-        "State Machines (FSM)",
-        "Fehlertolerante Pipelines"
-      ] : ["Event-Driven Architecture", "Orchestrator patterns", "State Machines (FSM)", "Fault-tolerant pipelines"]
+        "Reduzieren Ausfallrisiken",
+        "Beschleunigen Datenverarbeitung",
+        "Sichern Fehlertoleranz",
+        "Automatisieren Routine"
+      ] : ["Reduce failure risks", "Speed up data processing", "Ensure fault tolerance", "Automate routine tasks"]
     },
     {
-      title: isRu ? "Движок n8n Expert" : isDe ? "n8n Automatisierungs-Engine" : "n8n Automation Engine",
+      title: isRu ? "Автоматизация сложных бизнес‑процессов" : isDe ? "Automatisierung komplexer Geschäftsprozesse" : "Automation of Complex Business Processes",
       icon: Workflow,
       items: isRu ? [
-        "Сложные сценарии (ветвления, циклы)",
-        "Глобальная обработка ошибок",
-        "Кастомная логика (Code Nodes)",
-        "Webhooks, Queues & Batching"
+        "Сокращаем время на ручные операции",
+        "Увеличиваем точность выполнения",
+        "Интегрируем любые системы",
+        "Масштабируем под рост бизнеса"
       ] : isDe ? [
-        "Komplexe Workflows (Verzweigungen, Schleifen)",
-        "Globale Fehlerbehandlung",
-        "Benutzerdefinierte Logik (Code Nodes)",
-        "Webhooks, Queues & Batching"
-      ] : ["Complex workflows", "Global Error Handling", "Custom Code Logic", "Webhooks & Batching"]
+        "Reduzieren manuelle Arbeitszeit",
+        "Erhöhen Ausführungsgenauigkeit",
+        "Integrieren beliebige Systeme",
+        "Skalieren mit Unternehmenswachstum"
+      ] : ["Cut manual operation time", "Increase execution accuracy", "Integrate any systems", "Scale with business growth"]
     },
     {
-      title: isRu ? "Backend und Infrastruktur" : isDe ? "Backend & Infrastruktur" : "Backend & Infrastructure",
+      title: isRu ? "Стабильная инфраструктура для ваших данных" : isDe ? "Stabile Infrastruktur für Ihre Daten" : "Stable Infrastructure for Your Data",
       icon: Database,
       items: isRu ? [
-        "PostgreSQL / Redis / Qdrant",
-        "Очереди сообщений RabbitMQ",
-        "Docker / Docker Compose",
-        "S3 Storage (MinIO)"
+        "Гарантируем сохранность данных",
+        "Обеспечиваем высокую доступность",
+        "Ускоряем обработку запросов",
+        "Снижаем затраты на сервера"
       ] : isDe ? [
-        "PostgreSQL / Redis / Qdrant",
-        "RabbitMQ-Nachrichtenwarteschlangen",
-        "Docker / Docker Compose",
-        "S3 Storage (MinIO)"
-      ] : ["PostgreSQL / Redis", "RabbitMQ queues", "Docker / Compose", "S3 Storage"]
+        "Garantieren Datensicherheit",
+        "Sichern hohe Verfügbarkeit",
+        "Beschleunigen Anfrageverarbeitung",
+        "Senken Serverkosten"
+      ] : ["Guarantee data safety", "Ensure high availability", "Speed up request processing", "Reduce server costs"]
     },
     {
-      title: isRu ? "AI / LLM Integrationen" : isDe ? "AI / LLM Integrationen" : "AI / LLM Integration",
+      title: isRu ? "Искусственный интеллект, который работает на вас" : isDe ? "KI, die für Sie arbeitet" : "AI That Works for You",
       icon: BrainCircuit,
       items: isRu ? [
-        "OpenAI, Ollama, Anthropic",
-        "RAG системы (Vector Search)",
-        "Structured Output (JSON Repair)",
-        "Генерация медиа (ComfyUI)"
+        "Увеличиваем конверсию с помощью AI",
+        "Сокращаем время на анализ данных",
+        "Автоматизируем создание контента",
+        "Повышаем точность прогнозов"
       ] : isDe ? [
-        "OpenAI, Ollama, Anthropic",
-        "RAG-Systeme (Vector Search)",
-        "Strukturierte Ausgabe (JSON Repair)",
-        "Mediengenerierung (ComfyUI)"
-      ] : ["OpenAI, Ollama, Anthropic", "RAG systems", "Structured Output", "Media Gen (ComfyUI)"]
+        "Steigern Konversion durch KI",
+        "Reduzieren Datenanalysezeit",
+        "Automatisieren Content‑Erstellung",
+        "Verbessern Prognosegenauigkeit"
+      ] : ["Boost conversion with AI", "Cut data analysis time", "Automate content creation", "Improve prediction accuracy"]
     },
     {
-      title: isRu ? "Telegram Ökosystem" : isDe ? "Telegram Ökosystem" : "Telegram Ecosystem",
+      title: isRu ? "Telegram‑платформы для роста бизнеса" : isDe ? "Telegram‑Plattformen für Geschäftswachstum" : "Telegram Platforms for Business Growth",
       icon: MessageCircle,
       items: isRu ? [
-        "Telegram Bot API (Deep Dive)",
-        "Mini Apps / Web Apps",
-        "Прием платежей и подписки",
-        "Безопасность токенов и данных"
+        "Привлекаем новых клиентов через ботов",
+        "Увеличиваем продажи через Mini Apps",
+        "Автоматизируем поддержку клиентов",
+        "Защищаем данные и платежи"
       ] : isDe ? [
-        "Telegram Bot API (Deep Dive)",
-        "Mini Apps / Web Apps",
-        "Zahlungsabwicklung und Abonnements",
-        "Sicherheit von Tokens und Daten"
-      ] : ["Bot API expertise", "Mini Apps / Web Apps", "Payments", "Security"]
+        "Gewinnen neue Kunden über Bots",
+        "Steigern Verkäufe durch Mini Apps",
+        "Automatisieren Kunden‑Support",
+        "Schützen Daten und Zahlungen"
+      ] : ["Attract new customers via bots", "Increase sales via Mini Apps", "Automate customer support", "Secure data & payments"]
     },
     {
-      title: isRu ? "Zuverlässigkeit (Reliability)" : isDe ? "Zuverlässigkeit (Reliability)" : "Reliability Engineering",
+      title: isRu ? "Гарантия бесперебойной работы" : isDe ? "Garantie für unterbrechungsfreien Betrieb" : "Guarantee of Uninterrupted Operation",
       icon: ShieldCheck,
       items: isRu ? [
-        "Стратегии Retry и Idempotency",
-        "Мониторинг состояний",
-        "Root Cause Analysis",
-        "Автоматическое восстановление"
+        "Мониторим систему 24/7",
+        "Автоматически восстанавливаем после сбоев",
+        "Анализируем причины проблем",
+        "Предотвращаем потери данных"
       ] : isDe ? [
-        "Retry- und Idempotenz-Strategien",
-        "Statusüberwachung",
-        "Root Cause Analysis",
-        "Automatische Wiederherstellung"
-      ] : ["Retry strategies", "State monitoring", "Root Cause Analysis", "Self-healing systems"]
+        "Überwachen System 24/7",
+        "Stellen nach Störungen automatisch wieder her",
+        "Analysieren Problemursachen",
+        "Verhindern Datenverluste"
+      ] : ["Monitor system 24/7", "Automatically recover after failures", "Analyze root causes", "Prevent data loss"]
     }
   ];
 
