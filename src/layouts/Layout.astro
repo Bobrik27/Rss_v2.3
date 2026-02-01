@@ -20,7 +20,9 @@ const { title = 'Run Swift Studio v3', lang = 'ru' } = Astro.props;
   </head>
   <body class="bg-background text-text min-h-screen font-sans antialiased">
     <Header lang={lang} />
-    <slot />
+    <main class="max-w-[1700px] mx-auto w-full px-4">
+      <slot />
+    </main>
     <Footer lang={lang} />
   </body>
 </html>

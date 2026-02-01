@@ -1,0 +1,19 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import WBAuditWidget from '../../../components/wb-audit/WBAuditWidget';
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'en' } },
+    { params: { lang: 'ru' } },
+    { params: { lang: 'de' } },
+  ];
+}
+const { lang } = Astro.params;
+---
+
+<Layout title="WB Agent OS | Анализ конкурентов">
+  <div class="w-full max-w-[1700px] mx-auto min-h-screen bg-background flex items-center justify-center pt-20 pb-20 px-4">
+    <WBAuditWidget client:only="react" />
+  </div>
+</Layout>
