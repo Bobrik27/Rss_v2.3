@@ -91,6 +91,8 @@ const WBAuditWidget = () => {
       });
 
       // 5. Start polling for status
+      let consecutiveErrors = 0; // Track consecutive errors
+      
       const pollInterval = setInterval(async () => {
         try {
           const statusResponse = await fetch(`${API_CONFIG.endpoints.status(projectId)}&t=${Date.now()}`);
@@ -105,29 +107,24 @@ const WBAuditWidget = () => {
             statusData = { status: 'processing', stage: 'initializing' };
           }
           
+          // Reset error counter on successful response
+          consecutiveErrors = 0;
+          
           // Map stages to terminal logs
-          let logMessage = "";
-          switch(statusData.stage) {
-            case 'initializing':
-              logMessage = "[SYSTEM] Initializing secure connection...";
-              break;
-            case 'parsing':
-              logMessage = "[PARSER] Retrieving SKU metadata...";
-              break;
-            case 'ai_analysis':
-              logMessage = "[SEO] AI Agents are formulating growth hypothesis...";
-              break;
-            case 'done':
-              logMessage = "[SUCCESS] Audit complete. PDF ready for download.";
-              break;
-            default:
-              logMessage = `[${statusData.stage.toUpperCase()}] Processing...`;
-          }
+          const stageMapping: Record<string, string> = {
+            'initializing': '[SYSTEM] Initializing secure connection...',
+            'parsing': '[PARSER] Retrieving SKU metadata...',
+            'ai_analysis': '[SEO] AI Agents are formulating growth hypothesis...',
+            'done': '[SUCCESS] Audit complete. PDF ready for download.',
+          };
+          
+          const stageLog = stageMapping[statusData.stage] || `[${statusData.stage.toUpperCase()}] Processing...`;
           
           // Add log if it's not a duplicate of the last one
-          if (logs.length === 0 || logs[logs.length - 1] !== logMessage) {
-            setLogs(prev => [...prev, logMessage]);
-          }
+          setLogs(prev => {
+            if (prev.length > 0 && prev[prev.length - 1] === stageLog) return prev;
+            return [...prev, stageLog];
+          });
           
           if (statusData.status === 'completed') {
             // Set download URL from API response
@@ -173,7 +170,14 @@ const WBAuditWidget = () => {
           }
         } catch (err) {
           console.error("Polling error:", err);
-          // Don't show error toast, just continue polling
+          consecutiveErrors++; // Increment error counter
+          
+          // Only show error toast after 5 consecutive failures
+          if (consecutiveErrors >= 5) {
+            showToast("Ошибка соединения с сервером. Проверьте доступность сервиса.", "error");
+            consecutiveErrors = 0; // Reset after showing toast
+          }
+          
           // In case of network error, show initializing status
           if (logs.length === 0 || logs[logs.length - 1] !== "[SYSTEM] Initializing secure connection...") {
             setLogs(["[SYSTEM] Initializing secure connection..."]);
