@@ -97,9 +97,16 @@ const WBAuditWidget = () => {
         try {
           const statusResponse = await fetch(`${API_CONFIG.endpoints.status(projectId)}&t=${Date.now()}`);
           
+          // Defensive response handling
+          const text = await statusResponse.text();
+          
+          // If response is empty, skip this polling cycle
+          if (!text || text.trim() === "") {
+            return;
+          }
+          
           let statusData;
           try {
-            const text = await statusResponse.text();
             statusData = JSON.parse(text);
           } catch (e) {
             console.error("Failed to parse status response:", e);
@@ -111,29 +118,31 @@ const WBAuditWidget = () => {
           consecutiveErrors = 0;
           
           // Safety check for data
-          const stage = statusData?.stage || 'initializing'; // Fallback to initializing
-          const status = statusData?.status || 'processing';
+          const currentStage = statusData?.stage || 'initializing'; // Fallback to initializing
+          const currentStatus = statusData?.status || 'processing';
           
           const stageMapping: Record<string, string> = {
-            'initializing': "[SYSTEM] Initializing secure connection...",
-            'parsing': "[PARSER] Retrieving SKU metadata...",
-            'ai_analysis': "[AI] Agents are formulating growth hypothesis...",
-            'done': "[SUCCESS] Audit complete. PDF ready for download."
+            'initializing': "Initializing secure connection...",
+            'parsing': "Retrieving SKU metadata...",
+            'ai_analysis': "Agents are formulating growth hypothesis...",
+            'done': "Audit complete. PDF ready for download."
           };
           
           // Debug log to see what n8n returns
           console.log("Raw Status Data:", statusData);
           
-          const stageLog = stageMapping[stage] || stageMapping['initializing'];
-          
-          // Prevent duplicate logs
+          // Duplicate prevention (strict)
+          const stageText = stageMapping[currentStage] || stageMapping['initializing'];
           setLogs(prev => {
-            if (prev.length > 0 && prev[prev.length - 1] === stageLog) return prev;
-            return [...prev, stageLog];
+            if (prev.length > 0 && prev[prev.length - 1].includes(stageText)) {
+              return prev; // Stage hasn't changed, do nothing
+            }
+            const timestamp = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
+            return [...prev, `[${timestamp}] [${currentStage.toUpperCase()}] ${stageText}`];
           });
           
           // Handle completion
-          if (status === "completed" && (statusData.downloadUrl || statusData.download_url || statusData.pdf_url)) {
+          if (currentStatus === "completed" && (statusData.downloadUrl || statusData.download_url || statusData.pdf_url)) {
             // Set download URL from API response
             setProductData((prev: any) => ({
               ...prev,
@@ -149,47 +158,32 @@ const WBAuditWidget = () => {
             setTimeout(() => {
               setAuditState('RESULT');
             }, 1000);
-          }
-          
-          if (statusData.status === 'completed') {
-            // Set download URL from API response
-            setProductData((prev: any) => ({
-              ...prev,
-              downloadUrl: statusData.downloadUrl || statusData.pdf_url
-            }));
-            
-            setProgress(100);
-            
-            // Clear the interval
-            clearInterval(pollInterval);
-            
-            // Wait 1 second then set auditState to 'RESULT'
-            setTimeout(() => {
-              setAuditState('RESULT');
-            }, 1000);
-          } else if (status === 'not_found') {
+          } else if (currentStatus === 'not_found') {
             // Stay in initializing stage, don't show error toast
-            if (logs.length === 0 || logs[logs.length - 1] !== "[SYSTEM] Initializing secure connection...") {
-              setLogs(["[SYSTEM] Initializing secure connection..."]);
-            }
+            // Update progress for initializing stage - slowly crawl from 5% to 25%
+            setProgress(prev => Math.min(25, prev + 1));
           } else {
             // Update progress based on stage
             let progressValue = 0;
-            switch(stage) {
+            switch(currentStage) {
               case 'initializing':
-                progressValue = 10;
+                // Let progress slowly crawl from 5% to 25%
+                progressValue = Math.min(25, progress + 1);
                 break;
               case 'parsing':
-                progressValue = 30;
+                // Jump to 40% and crawl to 60%
+                progressValue = progress < 40 ? 40 : Math.min(60, progress + 1);
                 break;
               case 'ai_analysis':
-                progressValue = 60;
+                // Jump to 70% and crawl to 90%
+                progressValue = progress < 70 ? 70 : Math.min(90, progress + 1);
                 break;
               case 'done':
+                // Jump to 90%
                 progressValue = 90;
                 break;
               default:
-                progressValue = Math.min(90, progress + 5);
+                progressValue = Math.min(90, progress + 1);
             }
             setProgress(progressValue);
           }
@@ -204,9 +198,14 @@ const WBAuditWidget = () => {
           }
           
           // In case of network error, show initializing status
-          if (logs.length === 0 || logs[logs.length - 1] !== "[SYSTEM] Initializing secure connection...") {
-            setLogs(["[SYSTEM] Initializing secure connection..."]);
-          }
+          setLogs(prev => {
+            const initializingLog = "[INITIALIZING] Initializing secure connection...";
+            if (prev.length > 0 && prev[prev.length - 1].includes(initializingLog)) {
+              return prev; // Already has initializing message, do nothing
+            }
+            const timestamp = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
+            return [...prev, `[${timestamp}] [INITIALIZING] Initializing secure connection...`];
+          });
         }
       }, 3000); // Poll every 3 seconds
       
