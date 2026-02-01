@@ -93,13 +93,17 @@ const WBAuditWidget = () => {
       // 5. Start polling for status
       const pollInterval = setInterval(async () => {
         try {
-          const statusResponse = await fetch(API_CONFIG.endpoints.status(projectId));
+          const statusResponse = await fetch(`${API_CONFIG.endpoints.status(projectId)}&t=${Date.now()}`);
           
-          if (!statusResponse.ok) {
-            throw new Error(`Status API error: ${statusResponse.status}`);
+          let statusData;
+          try {
+            const text = await statusResponse.text();
+            statusData = JSON.parse(text);
+          } catch (e) {
+            console.error("Failed to parse status response:", e);
+            // If JSON parsing fails, continue polling with default values
+            statusData = { status: 'processing', stage: 'initializing' };
           }
-          
-          const statusData = await statusResponse.json();
           
           // Map stages to terminal logs
           let logMessage = "";

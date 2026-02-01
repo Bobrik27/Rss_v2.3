@@ -2,22 +2,31 @@ import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ url }) => {
   const projectId = url.searchParams.get('id');
+  const timestamp = url.searchParams.get('t'); // Cache buster from frontend
+  
   if (!projectId) return new Response('Missing ID', { status: 400 });
 
-  // NEW TARGET: n8n Webhook Gateway
-  const targetUrl = `https://steerefuepatam.beget.app/webhook/wb-status?id=${projectId}`;
+  // Target the new n8n Workflow F gateway
+  const targetUrl = `https://steerefuepatam.beget.app/webhook/wb-status?id=${projectId}&t=${timestamp}`;
 
   try {
     const response = await fetch(targetUrl);
-    // Even if it is 404, we want to return the JSON body to the frontend
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
+    const text = await response.text();
+    
+    // Safety check: if response is empty, return "processing"
+    if (!text || text.trim() === "") {
+        return new Response(JSON.stringify({ status: 'processing', stage: 'initializing' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    return new Response(text, {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }
     });
   } catch (error) {
-    // If Python is totally down or returns 404 without JSON
-    return new Response(JSON.stringify({ status: 'not_found', stage: 'initializing' }), {
+    return new Response(JSON.stringify({ status: 'processing', stage: 'initializing' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
