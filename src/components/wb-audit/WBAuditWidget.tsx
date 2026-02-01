@@ -134,14 +134,15 @@ const WBAuditWidget = () => {
             'done': "Audit complete. PDF ready for download."
           };
           
+          // Prioritize real messages from the server
+          const liveText = data.message || stageMapping[currentStage] || "Processing...";
+          
           // Duplicate prevention (strict)
-          const stageText = stageMapping[currentStage] || stageMapping['initializing'];
           setLogs(prev => {
-            if (prev.length > 0 && prev[prev.length - 1].includes(stageText)) {
-              return prev; // Stage hasn't changed, do nothing
-            }
-            const timestamp = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
-            return [...prev, `[${timestamp}] [${currentStage.toUpperCase()}] ${stageText}`];
+            const lastEntry = prev.length > 0 ? prev[prev.length - 1] : "";
+            if (lastEntry.includes(liveText)) return prev; // Skip if same message
+            const time = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
+            return [...prev, `[${time}] [${currentStage.toUpperCase()}] ${liveText}`];
           });
           
           // Handle completion
@@ -166,30 +167,30 @@ const WBAuditWidget = () => {
             // Update progress for initializing stage - slowly crawl from 5% to 25%
             setProgress(prev => Math.min(25, prev + 1));
           } else {
-            // Update progress based on stage
-            let progressValue = 0;
-            switch(currentStage) {
-              case 'initializing':
-                // Let progress slowly crawl from 5% to 25%
-                progressValue = Math.min(25, progress + 1);
-                break;
-              case 'parsing':
-                // Jump to 40% and crawl to 60%
-                progressValue = progress < 40 ? 40 : Math.min(60, progress + 1);
-                break;
-              case 'ai_analysis':
-                // Jump to 70% and crawl to 90%
-                progressValue = progress < 70 ? 70 : Math.min(90, progress + 1);
-                break;
-              case 'done':
-                // Jump to 90%
-                progressValue = 90;
-                break;
-              default:
-                progressValue = Math.min(90, progress + 1);
-            }
-            setProgress(progressValue);
-          }
+           // Update progress based on stage
+           let progressValue = 0;
+           switch(currentStage) {
+             case 'initializing':
+               // Let progress slowly crawl from 5% to 25%
+               progressValue = Math.min(25, progress + 1);
+               break;
+             case 'parsing':
+               // Start from current progress and slowly crawl to 60%
+               progressValue = Math.min(60, progress + 1);
+               break;
+             case 'ai_analysis':
+               // Start from current progress and slowly crawl to 90%
+               progressValue = Math.min(90, progress + 1);
+               break;
+             case 'done':
+               // Jump to 90%
+               progressValue = 90;
+               break;
+             default:
+               progressValue = Math.min(90, progress + 1);
+           }
+           setProgress(progressValue);
+         }
         } catch (err) {
           console.error("Polling error:", err);
           consecutiveErrors++; // Increment error counter
@@ -206,8 +207,8 @@ const WBAuditWidget = () => {
             if (prev.length > 0 && prev[prev.length - 1].includes(initializingLog)) {
               return prev; // Already has initializing message, do nothing
             }
-            const timestamp = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
-            return [...prev, `[${timestamp}] [INITIALIZING] Initializing secure connection...`];
+            const time = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
+            return [...prev, `[${time}] [INITIALIZING] Initializing secure connection...`];
           });
         }
       }, 3000); // Poll every 3 seconds
