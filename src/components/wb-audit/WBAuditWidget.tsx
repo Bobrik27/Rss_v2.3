@@ -105,21 +105,27 @@ const WBAuditWidget = () => {
             return;
           }
           
-          let statusData;
+          let rawData;
           try {
-            statusData = JSON.parse(text);
+            rawData = JSON.parse(text);
           } catch (e) {
             console.error("Failed to parse status response:", e);
             // If JSON parsing fails, continue polling with default values
-            statusData = { status: 'processing', stage: 'initializing' };
+            rawData = { status: 'processing', stage: 'initializing' };
           }
+          
+          // n8n often returns data as [{...}]. We need to flatten it.
+          const data = Array.isArray(rawData) ? rawData[0] : rawData;
+          
+          console.log("Processed Status Data:", data); // Now it should be an object
           
           // Reset error counter on successful response
           consecutiveErrors = 0;
           
           // Safety check for data
-          const currentStage = statusData?.stage || 'initializing'; // Fallback to initializing
-          const currentStatus = statusData?.status || 'processing';
+          const currentStage = data?.stage || 'initializing'; // Fallback to initializing
+          const currentStatus = data?.status || 'processing';
+          const downloadUrl = data?.download_url || null;
           
           const stageMapping: Record<string, string> = {
             'initializing': "Initializing secure connection...",
@@ -127,9 +133,6 @@ const WBAuditWidget = () => {
             'ai_analysis': "Agents are formulating growth hypothesis...",
             'done': "Audit complete. PDF ready for download."
           };
-          
-          // Debug log to see what n8n returns
-          console.log("Raw Status Data:", statusData);
           
           // Duplicate prevention (strict)
           const stageText = stageMapping[currentStage] || stageMapping['initializing'];
@@ -142,11 +145,11 @@ const WBAuditWidget = () => {
           });
           
           // Handle completion
-          if (currentStatus === "completed" && (statusData.downloadUrl || statusData.download_url || statusData.pdf_url)) {
+          if (currentStatus === "completed" && (data.downloadUrl || data.download_url || data.pdf_url)) {
             // Set download URL from API response
             setProductData((prev: any) => ({
               ...prev,
-              downloadUrl: statusData.downloadUrl || statusData.download_url || statusData.pdf_url
+              downloadUrl: data.downloadUrl || data.download_url || data.pdf_url
             }));
             
             setProgress(100);
