@@ -110,21 +110,46 @@ const WBAuditWidget = () => {
           // Reset error counter on successful response
           consecutiveErrors = 0;
           
-          // Map stages to terminal logs
+          // Safety check for data
+          const stage = statusData?.stage || 'initializing'; // Fallback to initializing
+          const status = statusData?.status || 'processing';
+          
           const stageMapping: Record<string, string> = {
-            'initializing': '[SYSTEM] Initializing secure connection...',
-            'parsing': '[PARSER] Retrieving SKU metadata...',
-            'ai_analysis': '[SEO] AI Agents are formulating growth hypothesis...',
-            'done': '[SUCCESS] Audit complete. PDF ready for download.',
+            'initializing': "[SYSTEM] Initializing secure connection...",
+            'parsing': "[PARSER] Retrieving SKU metadata...",
+            'ai_analysis': "[AI] Agents are formulating growth hypothesis...",
+            'done': "[SUCCESS] Audit complete. PDF ready for download."
           };
           
-          const stageLog = stageMapping[statusData.stage] || `[${statusData.stage.toUpperCase()}] Processing...`;
+          // Debug log to see what n8n returns
+          console.log("Raw Status Data:", statusData);
           
-          // Add log if it's not a duplicate of the last one
+          const stageLog = stageMapping[stage] || stageMapping['initializing'];
+          
+          // Prevent duplicate logs
           setLogs(prev => {
             if (prev.length > 0 && prev[prev.length - 1] === stageLog) return prev;
             return [...prev, stageLog];
           });
+          
+          // Handle completion
+          if (status === "completed" && (statusData.downloadUrl || statusData.download_url || statusData.pdf_url)) {
+            // Set download URL from API response
+            setProductData((prev: any) => ({
+              ...prev,
+              downloadUrl: statusData.downloadUrl || statusData.download_url || statusData.pdf_url
+            }));
+            
+            setProgress(100);
+            
+            // Clear the interval
+            clearInterval(pollInterval);
+            
+            // Wait 1 second then set auditState to 'RESULT'
+            setTimeout(() => {
+              setAuditState('RESULT');
+            }, 1000);
+          }
           
           if (statusData.status === 'completed') {
             // Set download URL from API response
@@ -142,7 +167,7 @@ const WBAuditWidget = () => {
             setTimeout(() => {
               setAuditState('RESULT');
             }, 1000);
-          } else if (statusData.status === 'not_found') {
+          } else if (status === 'not_found') {
             // Stay in initializing stage, don't show error toast
             if (logs.length === 0 || logs[logs.length - 1] !== "[SYSTEM] Initializing secure connection...") {
               setLogs(["[SYSTEM] Initializing secure connection..."]);
@@ -150,7 +175,7 @@ const WBAuditWidget = () => {
           } else {
             // Update progress based on stage
             let progressValue = 0;
-            switch(statusData.stage) {
+            switch(stage) {
               case 'initializing':
                 progressValue = 10;
                 break;
