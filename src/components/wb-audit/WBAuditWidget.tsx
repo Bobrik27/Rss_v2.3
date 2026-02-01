@@ -43,7 +43,7 @@ const WBAuditWidget = () => {
 
   const handleStartAnalysis = async () => {
     // 1. Validation
-    const wbRegex = /wildberries\.ru\/catalog\/(\d+)/;
+    const wbRegex = /catalog\/(\d+)/;
     const match = url.match(wbRegex);
     if (!match) {
       showToast("Введите корректную ссылку на товар Wildberries", "error");
@@ -53,6 +53,13 @@ const WBAuditWidget = () => {
     // 2. Extract SKU and generate projectId
     const sku = match[1];
     const projectId = `wb_${sku}`;
+    
+    // 3. Reset states completely before starting new analysis
+    setProgress(0);
+    setLogs([]);
+    setProductData(null);
+    
+    setAuditState('PROCESSING');
     
     setAuditState('PROCESSING');
     setProgress(0);
@@ -86,7 +93,7 @@ const WBAuditWidget = () => {
       // 5. Start polling for status
       const pollInterval = setInterval(async () => {
         try {
-          const statusResponse = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.status(projectId)}`);
+          const statusResponse = await fetch(API_CONFIG.endpoints.status(projectId));
           
           if (!statusResponse.ok) {
             throw new Error(`Status API error: ${statusResponse.status}`);
@@ -135,7 +142,7 @@ const WBAuditWidget = () => {
               setAuditState('RESULT');
             }, 1000);
           } else if (statusData.status === 'not_found') {
-            // Stay in initializing stage
+            // Stay in initializing stage, don't show error toast
             if (logs.length === 0 || logs[logs.length - 1] !== "[SYSTEM] Initializing secure connection...") {
               setLogs(["[SYSTEM] Initializing secure connection..."]);
             }
@@ -162,10 +169,11 @@ const WBAuditWidget = () => {
           }
         } catch (err) {
           console.error("Polling error:", err);
-          clearInterval(pollInterval);
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-          showToast(`Ошибка получения статуса: ${errorMessage}`, "error");
-          setAuditState('IDLE');
+          // Don't show error toast, just continue polling
+          // In case of network error, show initializing status
+          if (logs.length === 0 || logs[logs.length - 1] !== "[SYSTEM] Initializing secure connection...") {
+            setLogs(["[SYSTEM] Initializing secure connection..."]);
+          }
         }
       }, 3000); // Poll every 3 seconds
       
