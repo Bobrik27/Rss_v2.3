@@ -41,79 +41,139 @@ const WBAuditWidget = () => {
     { id: 'search', title: 'SEO Разведка', status: 'LOCKED', desc: 'Анализ семантического ядра конкурентов.', icon: <Search className="w-5 h-5" /> },
   ];
 
-  const logSteps = [
-    { text: "[SYSTEM] Initializing secure connection...", delay: 800 },
-    { text: "[PARSER] Retrieving SKU metadata...", delay: 1200 },
-    { text: "[SEO] Analyzing semantic core coverage...", delay: 1500 },
-    { text: "[MEDIA] Checking visual content conversion...", delay: 1000 },
-    { text: "[RISK] Calculating budget leakage...", delay: 1000 },
-    { text: "[REPORT] Finalizing audit data...", delay: 800 }
-  ];
-
   const handleStartAnalysis = async () => {
     // 1. Validation
-    const wbRegex = /wildberries\.ru\/catalog\/\d+/;
-    if (!wbRegex.test(url)) {
+    const wbRegex = /wildberries\.ru\/catalog\/(\d+)/;
+    const match = url.match(wbRegex);
+    if (!match) {
       showToast("Введите корректную ссылку на товар Wildberries", "error");
       return;
     }
 
+    // 2. Extract SKU and generate projectId
+    const sku = match[1];
+    const projectId = `wb_${sku}`;
+    
     setAuditState('PROCESSING');
     setProgress(0);
     setLogs([]);
     
-    // 2. Animation Loop (Guaranteed Minimum Time)
-    const animationPromise = new Promise<void>((resolve) => {
-        let stepIndex = 0;
-        const runNextStep = () => {
-            if (stepIndex < logSteps.length) {
-                const step = logSteps[stepIndex];
-                setLogs(prev => [...prev, step.text]);
-                // Smooth progress update
-                const newProgress = Math.floor(((stepIndex + 1) / logSteps.length) * 100);
-                setProgress(newProgress);
-                
-                stepIndex++;
-                setTimeout(runNextStep, step.delay);
-            } else {
-                resolve();
-            }
-        };
-        runNextStep();
-    });
-
-    // 3. API Fetch (Silent catch to fallback to demo)
-    const fetchPromise = fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.parse, {
+    try {
+      // 3. Call parse endpoint (Workflow A) to get product info
+      const parseResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.parse, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
-    }).then(async res => {
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    }).catch(err => {
-        console.warn("API Switch to Mock:", err);
-        return null; // Return null to trigger fallback
-    });
+      });
 
-    // 4. Wait & Transition
-    try {
-        const [_, data] = await Promise.all([animationPromise, fetchPromise]);
-        
-        if (data && data.name) {
-            setProductData(data);
-        } else {
-            // MOCK DATA FALLBACK (For seamless UX if API fails)
-            setProductData({
-                name: "Apple Watch Series 9 (DEMO)",
-                image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
-                rating: 4.8,
-                reviews_count: 2492
-            });
-            if (!data) showToast("Сервер занят. Показаны демо-данные.", "info");
+      if (!parseResponse.ok) {
+        throw new Error(`Parse API error: ${parseResponse.status}`);
+      }
+
+      const parseData = await parseResponse.json();
+      // Update productData immediately when parse returns
+      if (parseData) {
+        setProductData(parseData);
+      }
+
+      // 4. Call trigger endpoint (Workflow B) to start Python analysis
+      await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, projectId })
+      });
+
+      // 5. Start polling for status
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.status(projectId)}`);
+          
+          if (!statusResponse.ok) {
+            throw new Error(`Status API error: ${statusResponse.status}`);
+          }
+          
+          const statusData = await statusResponse.json();
+          
+          // Map stages to terminal logs
+          let logMessage = "";
+          switch(statusData.stage) {
+            case 'initializing':
+              logMessage = "[SYSTEM] Initializing secure connection...";
+              break;
+            case 'parsing':
+              logMessage = "[PARSER] Retrieving SKU metadata...";
+              break;
+            case 'ai_analysis':
+              logMessage = "[SEO] AI Agents are formulating growth hypothesis...";
+              break;
+            case 'done':
+              logMessage = "[SUCCESS] Audit complete. PDF ready for download.";
+              break;
+            default:
+              logMessage = `[${statusData.stage.toUpperCase()}] Processing...`;
+          }
+          
+          // Add log if it's not a duplicate of the last one
+          if (logs.length === 0 || logs[logs.length - 1] !== logMessage) {
+            setLogs(prev => [...prev, logMessage]);
+          }
+          
+          if (statusData.status === 'completed') {
+            // Set download URL from API response
+            setProductData((prev: any) => ({
+              ...prev,
+              downloadUrl: statusData.downloadUrl || statusData.pdf_url
+            }));
+            
+            setProgress(100);
+            
+            // Clear the interval
+            clearInterval(pollInterval);
+            
+            // Wait 1 second then set auditState to 'RESULT'
+            setTimeout(() => {
+              setAuditState('RESULT');
+            }, 1000);
+          } else if (statusData.status === 'not_found') {
+            // Stay in initializing stage
+            if (logs.length === 0 || logs[logs.length - 1] !== "[SYSTEM] Initializing secure connection...") {
+              setLogs(["[SYSTEM] Initializing secure connection..."]);
+            }
+          } else {
+            // Update progress based on stage
+            let progressValue = 0;
+            switch(statusData.stage) {
+              case 'initializing':
+                progressValue = 10;
+                break;
+              case 'parsing':
+                progressValue = 30;
+                break;
+              case 'ai_analysis':
+                progressValue = 60;
+                break;
+              case 'done':
+                progressValue = 90;
+                break;
+              default:
+                progressValue = Math.min(90, progress + 5);
+            }
+            setProgress(progressValue);
+          }
+        } catch (err) {
+          console.error("Polling error:", err);
+          clearInterval(pollInterval);
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          showToast(`Ошибка получения статуса: ${errorMessage}`, "error");
+          setAuditState('IDLE');
         }
-        setAuditState('RESULT');
-    } catch (e) {
-        setAuditState('IDLE');
+      }, 3000); // Poll every 3 seconds
+      
+    } catch (error) {
+      console.error("Analysis error:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      showToast(`Ошибка: ${errorMessage}`, "error");
+      setAuditState('IDLE');
     }
   };
 
@@ -318,9 +378,21 @@ const WBAuditWidget = () => {
                       <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • Рекомендации по SEO</li>
                       <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • PDF Отчет</li>
                     </ul>
-                    <button className="w-full py-4 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-bold uppercase">
-                      Получить отчет
-                    </button>
+                    {productData?.downloadUrl ? (
+                      <a
+                        href={productData.downloadUrl}
+                        className="w-full py-4 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-bold uppercase text-center"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Скачать отчет
+                      </a>
+                    ) : (
+                      <button className="w-full py-4 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-bold uppercase flex items-center justify-center">
+                        <div className="w-4 h-4 border-t-2 border-r-2 border-primary rounded-full animate-spin mr-2"></div>
+                        Генерация...
+                      </button>
+                    )}
                   </div>
 
                   {/* Pro */}
@@ -335,9 +407,21 @@ const WBAuditWidget = () => {
                         <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • ТЗ для дизайнера</li>
                         <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • Индивидуальный подход</li>
                         </ul>
-                        <button className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center gap-2">
-                        Скачать стратегию <Rocket size={16} />
-                        </button>
+                        {productData?.downloadUrl ? (
+                          <a
+                            href={productData.downloadUrl}
+                            className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center gap-2"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                          Скачать стратегию <Rocket size={16} />
+                          </a>
+                        ) : (
+                          <button className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center">
+                            <div className="w-4 h-4 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
+                            Генерация...
+                          </button>
+                        )}
                     </div>
                   </div>
                 </div>
