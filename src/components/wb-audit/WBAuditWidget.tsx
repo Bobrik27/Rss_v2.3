@@ -184,12 +184,13 @@ const WBAuditWidget = () => {
 
       const pollInterval = setInterval(async () => {
         try {
-          const statusResponse = await fetch(
-            `${API_CONFIG.baseUrl}/webhook/wb-status?projectId=${projectId}&guestId=${guestId}&t=${Date.now()}`
-          );
+          const statusUrl = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.status(projectId)}&guestId=${guestId}&t=${Date.now()}`;
+          console.log("DEBUG: Polling URL:", statusUrl);
+          const statusResponse = await fetch(statusUrl);
 
           if (!statusResponse.ok) {
             console.error(`Status API error: ${statusResponse.status}`);
+            // Even if there's an error, we should continue polling to eventually get status
             // Don't throw error immediately, just continue to next poll
             return;
           }
@@ -197,10 +198,38 @@ const WBAuditWidget = () => {
           const text = await statusResponse.text();
           if (!text) {
             console.error("Empty response from API");
-            // Stay in current state or set a 'retrying' message
+            // Instead of returning, create a default response to maintain polling
+            const defaultData: ApiResponse = {
+              phase: 'ERROR',
+              status: 'error',
+              message: 'Backend unreachable or project not found'
+            };
+            
+            // Only update if phase has changed
+            if (defaultData.phase !== phase) {
+              setPhase(defaultData.phase);
+              
+              if (defaultData.phase === 'ERROR') {
+                clearInterval(pollInterval);
+                showToast("Backend is currently under maintenance. Retrying...", "info");
+              }
+            }
+            
+            // Handle messages and logs
+            if (defaultData.message) {
+              setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${defaultData.message}`]);
+            }
+            
+            // Stop polling if phase is terminal
+            if (['DONE', 'PAID', 'PDF_READY', 'ERROR'].includes(defaultData.phase)) {
+              clearInterval(pollInterval);
+            }
             return;
           }
 
+          console.log("DEBUG: Response Status:", statusResponse.status);
+          console.log("DEBUG: Raw Text:", text);
+          
           try {
             const data: ApiResponse = JSON.parse(text);
 
@@ -216,11 +245,15 @@ const WBAuditWidget = () => {
                   break;
                 case 'TEASER_READY':
                   setProgress(85);
-                  if (data.productData) setProductData(data.productData);
+                  // Data mapping fix: check both data and productData fields
+                  const teaserProductData = data.data || data.productData;
+                  if (teaserProductData) setProductData(teaserProductData);
                   break;
                 case 'DONE':
                   setProgress(100);
-                  if (data.productData) setProductData(data.productData);
+                  // Data mapping fix: check both data and productData fields
+                  const doneProductData = data.data || data.productData;
+                  if (doneProductData) setProductData(doneProductData);
                   // Wait 1 second before showing result view
                   setTimeout(() => {
                     if (phase === 'DONE') setView('audit');
@@ -234,7 +267,7 @@ const WBAuditWidget = () => {
                   break;
                 case 'ERROR':
                   clearInterval(pollInterval);
-                  showToast("Ошибка при обработке запроса", "error");
+                  showToast("Backend is currently under maintenance. Retrying...", "info");
                   break;
               }
             }

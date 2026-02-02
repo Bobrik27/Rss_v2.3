@@ -4,6 +4,6 @@ export const API_CONFIG = {
     parse: '/webhook/wb/parse',        // Workflow A (Teaser)
     trigger: '/webhook/wb/full-audit', // Workflow B (Trigger via n8n)
     // DIRECT URL FOR STATUS
-    status: (id: string) => `https://steerefuepatam.beget.app/webhook/wb-status?id=${id}`
+    status: (id: string) => `/webhook/wb-status?id=${id}`
   }
 };
