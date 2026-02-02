@@ -132,19 +132,50 @@ const WBAuditWidget = () => {
       });
 
       if (!parseResponse.ok) throw new Error(`Parse API error: ${parseResponse.status}`);
-      const parseData = await parseResponse.json();
-
-      // 4. Update product data immediately
-      if (parseData) {
-        setProductData(parseData);
+      
+      const text = await parseResponse.text();
+      if (!text) {
+        console.error("Empty response from parse API");
+        // Continue to trigger workflow even if parse data is empty
+      } else {
+        try {
+          const parseData = JSON.parse(text);
+          
+          // 4. Update product data immediately
+          if (parseData) {
+            setProductData(parseData);
+          }
+        } catch (e) {
+          console.error("Malformed JSON from parse API:", text);
+          // Continue to trigger workflow even if parse data is malformed
+        }
       }
 
       // 5. Call trigger endpoint
-      await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
+      const triggerResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
       });
+
+      if (!triggerResponse.ok) {
+        console.error(`Trigger API error: ${triggerResponse.status}`);
+        showToast("Ошибка запуска анализа", "error");
+        return;
+      }
+
+      const triggerText = await triggerResponse.text();
+      if (!triggerText) {
+        console.log("Empty response from trigger API, continuing...");
+      } else {
+        try {
+          const triggerData = JSON.parse(triggerText);
+          // Process trigger response if needed
+        } catch (e) {
+          console.error("Malformed JSON from trigger API:", triggerText);
+          // Continue anyway
+        }
+      }
 
       // 6. Start polling for status
       setPhase('PARSING');
@@ -157,58 +188,75 @@ const WBAuditWidget = () => {
             `${API_CONFIG.baseUrl}/webhook/wb-status?projectId=${projectId}&guestId=${guestId}&t=${Date.now()}`
           );
 
-          if (!statusResponse.ok) throw new Error(`Status API error: ${statusResponse.status}`);
-          const data: ApiResponse = await statusResponse.json();
-
-          // Only update if phase has changed
-          if (data.phase !== phase) {
-            setPhase(data.phase);
-
-            // Handle phase-specific logic
-            switch(data.phase) {
-              case 'PARSING':
-              case 'ANALYZING':
-                setProgress(prev => Math.min(70, prev + 5));
-                break;
-              case 'TEASER_READY':
-                setProgress(85);
-                if (data.productData) setProductData(data.productData);
-                break;
-              case 'DONE':
-                setProgress(100);
-                if (data.productData) setProductData(data.productData);
-                // Wait 1 second before showing result view
-                setTimeout(() => {
-                  if (phase === 'DONE') setView('audit');
-                }, 1000);
-                break;
-              case 'PAID':
-                // Payment successful, prepare for PDF
-                break;
-              case 'PDF_READY':
-                setDownloadUrl(data.pdf_url || null);
-                break;
-              case 'ERROR':
-                clearInterval(pollInterval);
-                showToast("Ошибка при обработке запроса", "error");
-                break;
-            }
+          if (!statusResponse.ok) {
+            console.error(`Status API error: ${statusResponse.status}`);
+            // Don't throw error immediately, just continue to next poll
+            return;
           }
 
-          // Handle messages and logs
-          if (data.message) {
-            setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${data.message}`]);
-          } else {
-            // Cycle through fake logs every 4s if no real message
-            if (logs.length === 0 || Date.now() % 4000 < 100) {
-              const randomLog = FAKE_LOGS[Math.floor(Math.random() * FAKE_LOGS.length)];
-              setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${randomLog}`]);
-            }
+          const text = await statusResponse.text();
+          if (!text) {
+            console.error("Empty response from API");
+            // Stay in current state or set a 'retrying' message
+            return;
           }
 
-          // Stop polling if phase is terminal
-          if (['DONE', 'PAID', 'PDF_READY', 'ERROR'].includes(data.phase)) {
-            clearInterval(pollInterval);
+          try {
+            const data: ApiResponse = JSON.parse(text);
+
+            // Only update if phase has changed
+            if (data.phase !== phase) {
+              setPhase(data.phase);
+
+              // Handle phase-specific logic
+              switch(data.phase) {
+                case 'PARSING':
+                case 'ANALYZING':
+                  setProgress(prev => Math.min(70, prev + 5));
+                  break;
+                case 'TEASER_READY':
+                  setProgress(85);
+                  if (data.productData) setProductData(data.productData);
+                  break;
+                case 'DONE':
+                  setProgress(100);
+                  if (data.productData) setProductData(data.productData);
+                  // Wait 1 second before showing result view
+                  setTimeout(() => {
+                    if (phase === 'DONE') setView('audit');
+                  }, 1000);
+                  break;
+                case 'PAID':
+                  // Payment successful, prepare for PDF
+                  break;
+                case 'PDF_READY':
+                  setDownloadUrl(data.pdf_url || null);
+                  break;
+                case 'ERROR':
+                  clearInterval(pollInterval);
+                  showToast("Ошибка при обработке запроса", "error");
+                  break;
+              }
+            }
+
+            // Handle messages and logs
+            if (data.message) {
+              setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${data.message}`]);
+            } else {
+              // Cycle through fake logs every 4s if no real message
+              if (logs.length === 0 || Date.now() % 4000 < 100) {
+                const randomLog = FAKE_LOGS[Math.floor(Math.random() * FAKE_LOGS.length)];
+                setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${randomLog}`]);
+              }
+            }
+
+            // Stop polling if phase is terminal
+            if (['DONE', 'PAID', 'PDF_READY', 'ERROR'].includes(data.phase)) {
+              clearInterval(pollInterval);
+            }
+          } catch (e) {
+            console.error("Malformed JSON:", text);
+            // Don't crash, just log and wait for the next poll
           }
         } catch (error) {
           console.error("Polling error:", error);
@@ -232,11 +280,31 @@ const WBAuditWidget = () => {
     }
 
     try {
-      await fetch(API_CONFIG.baseUrl + '/webhook/wb/save-lead', {
+      const response = await fetch(API_CONFIG.baseUrl + '/webhook/wb/save-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, projectId: `wb_${Date.now()}` })
       });
+
+      if (!response.ok) {
+        console.error(`Save lead API error: ${response.status}`);
+        showToast("Ошибка при сохранении email", "error");
+        return;
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.error("Empty response from save-lead API");
+        // Continue anyway as the lead was likely saved
+      } else {
+        try {
+          const responseData = JSON.parse(text);
+          // Process response data if needed
+        } catch (e) {
+          console.error("Malformed JSON from save-lead API:", text);
+          // Continue anyway as the lead was likely saved
+        }
+      }
 
       setIsEmailModalOpen(false);
       // Show payment options
