@@ -1,7 +1,7 @@
 # Run Swift Studio v3 (RSS_v2.3)
 
 ## Overview
-Run Swift Studio v3 is a high-performance portfolio website with blog and news sections, built with Astro v5, TypeScript, and React 19. The site features multilingual support and content collections for dynamic content management.
+Run Swift Studio v3 is a high-performance portfolio website with blog and news sections, built with Astro v5, TypeScript, and React 19. The site features multilingual support and content collections for dynamic content management. Includes a specialized WB Audit tool for analyzing Wildberries products.
 
 ## Features
 - 🚀 **High Performance**: Static Site Generation (SSG) with Astro's island architecture
@@ -10,6 +10,8 @@ Run Swift Studio v3 is a high-performance portfolio website with blog and news s
 - 🎨 **Modern Styling**: Tailwind CSS v4 with custom theme system
 - 🌙 **Dark/Light Theme**: Automatic theme detection with manual override
 - 📱 **Responsive Design**: Mobile-first approach with adaptive layouts
+- 🔍 **WB Audit Tool**: Specialized tool for analyzing Wildberries products with n8n integration
+- 🧩 **Modular Architecture**: Clean separation of Astro and React components
 
 ## Tech Stack
 - **Framework**: [Astro v5](https://astro.build/)
@@ -17,6 +19,7 @@ Run Swift Studio v3 is a high-performance portfolio website with blog and news s
 - **Styling**: Tailwind CSS v4
 - **Icons**: Lucide React
 - **Build Tool**: Vite
+- **Integration**: n8n workflow automation platform
 
 ## Project Structure
 
@@ -26,12 +29,17 @@ RSS_v2.3/
 │   ├── components/          # Reusable components
 │   │   ├── interactive/     # Interactive React components
 │   │   ├── landing/         # Landing page components
-│   │   └── sections/        # Section components
+│   │   ├── sections/        # Section components
+│   │   └── wb-audit/        # WB Audit tool components
 │   ├── content/            # Content collections (blog, news)
 │   ├── data/               # Static data
 │   ├── i18n/               # Translation dictionaries
 │   ├── layouts/            # Page layouts
 │   ├── pages/[lang]/       # Localized routes
+│   │   └── tools/          # Specialized tools
+│   │       └── wb-audit.astro # WB Audit tool page
+│   ├── config/             # Configuration files
+│   │   └── api.ts          # API configuration
 │   └── styles/             # Global styles
 ├── public/                 # Static assets
 └── source/                 # Legacy versions and auxiliary files
@@ -96,6 +104,27 @@ Schema includes:
 - `tags` (array of strings)
 - `source` (string, optional)
 - `category` (string, optional)
+
+## WB Audit Tool
+
+The project includes a specialized tool for auditing Wildberries products:
+
+### Features:
+- 6-module analysis system (Marketing Analysis, Autonomous Agents, etc.)
+- Integration with n8n workflow automation
+- Real-time terminal-style progress tracking
+- Product data extraction and analysis
+- Downloadable reports and strategic recommendations
+
+### Endpoints:
+- Parse: `/webhook/wb/parse` (Workflow A)
+- Trigger: `/webhook/wb/full-audit` (Workflow B)
+- Status: `/webhook/wb-status` (Workflow F)
+
+### Location:
+- Page: `src/pages/[lang]/tools/wb-audit.astro`
+- Component: `src/components/wb-audit/WBAuditWidget.tsx`
+- Navigation: "Кейсы" link in the header
 
 ## Styling
 

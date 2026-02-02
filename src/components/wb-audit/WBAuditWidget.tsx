@@ -1,11 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  BarChart3, Rocket, Loader2, CheckCircle2, 
-  Lock, AlertTriangle, Zap, XCircle, Info, Database, BrainCircuit, Search
+  BarChart3, Globe, Rocket, Loader2, CheckCircle2, 
+  Lock, AlertTriangle, ShoppingCart, Zap, XCircle, Info, Database, BrainCircuit, Search
 } from 'lucide-react';
 import { API_CONFIG } from '../../config/api';
 
-// --- UI HELPERS ---
+// --- TYPES ---
+type Phase = 
+  'INIT' | 'PARSING' | 'TEASER_READY' | 'ANALYZING' | 'DONE' | 
+  'WAITING_PAYMENT' | 'PAID' | 'PDF_GENERATING' | 'PDF_READY' | 'ERROR';
+
+interface ProductData {
+  name?: string;
+  media?: string;
+  teaser?: Array<{ title: string; description: string }>;
+  [key: string]: any;
+}
+
+interface ApiResponse {
+  phase: Phase;
+  message?: string;
+  productData?: ProductData;
+  pdf_url?: string;
+  [key: string]: any;
+}
+
+// --- UI COMPONENTS ---
 const Toast = ({ message, type, onClose }: { message: string, type: 'error' | 'info', onClose: () => void }) => (
   <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl animate-in slide-in-from-right-10 duration-300 border ${
     type === 'error' ? 'bg-red-950/90 border-red-800 text-red-100' : 'bg-card border-border text-foreground'
@@ -16,19 +36,66 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'error' | 'i
   </div>
 );
 
+const Modal = ({ isOpen, onClose, title, children }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  title: string; 
+  children: React.ReactNode;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-foreground">{title}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const WBAuditWidget = () => {
   const [view, setView] = useState<'grid' | 'audit'>('grid'); 
-  const [auditState, setAuditState] = useState<'IDLE' | 'PROCESSING' | 'RESULT'>('IDLE'); 
+  const [phase, setPhase] = useState<Phase>('INIT'); 
   const [url, setUrl] = useState('');
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
   const [toast, setToast] = useState<{message: string, type: 'error'|'info'} | null>(null);
-  const [productData, setProductData] = useState<any>(null);
+  const [productData, setProductData] = useState<ProductData | null>(null);
+  const [email, setEmail] = useState('');
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
+
+  const FAKE_LOGS = [
+    "[SYSTEM] Initializing secure connection...",
+    "[PARSER] Retrieving SKU metadata...",
+    "[SEO] Analyzing semantic core coverage...",
+    "[MEDIA] Checking visual content conversion...",
+    "[RISK] Calculating budget leakage...",
+    "[REPORT] Finalizing audit data...",
+    "[AI] Agents are formulating growth hypothesis...",
+    "[SUCCESS] Audit complete. PDF ready for download."
+  ];
 
   const showToast = (message: string, type: 'error' | 'info' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // Get or generate guest ID
+  const getGuestId = (): string => {
+    const stored = localStorage.getItem('guest_id');
+    if (stored) return stored;
+    
+    const newId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('guest_id', newId);
+    return newId;
   };
 
   // Modules Configuration (Aligned with Competencies Style)
@@ -36,188 +103,147 @@ const WBAuditWidget = () => {
     { id: 'marketing', title: 'МАРКЕТИНГОВЫЙ АНАЛИЗ', status: 'ACTIVE', desc: 'Глубокий аудит карточек товара Wildberries.', icon: <BarChart3 className="w-5 h-5" /> },
     { id: 'agents', title: 'Автономные агенты', status: 'LOCKED', desc: 'Цифровые сотрудники на базе n8n и Make.', icon: <Zap className="w-5 h-5" /> },
     { id: 'vibe', title: 'Vibe-coding', status: 'LOCKED', desc: 'Создание прототипов через прямой диалог с кодом.', icon: <Rocket className="w-5 h-5" /> },
-    { id: 'neuro', title: 'Нейросети', status: 'LOCKED', desc: 'Обучение локальных LLM на ваших данных.', icon: <BrainCircuit className="w-5 h-5" /> },
+    { id: 'advice', title: 'Совет AI', status: 'LOCKED', desc: 'Мультимодальный консилиум ИИ для принятия реший.', icon: <Globe className="w-5 h-5" /> },
     { id: 'db', title: 'Базы Данных', status: 'LOCKED', desc: 'Проектирование архитектуры High-Load систем.', icon: <Database className="w-5 h-5" /> },
-    { id: 'search', title: 'SEO Разведка', status: 'LOCKED', desc: 'Анализ семантического ядра конкурентов.', icon: <Search className="w-5 h-5" /> },
+    { id: 'neuro', title: 'Нейросети', status: 'LOCKED', desc: 'Обучение локальных LLM на ваших данных.', icon: <BrainCircuit className="w-5 h-5" /> },
   ];
 
   const handleStartAnalysis = async () => {
     // 1. Validation
-    const wbRegex = /catalog\/(\d+)/;
-    const match = url.match(wbRegex);
-    if (!match) {
-      showToast("Введите корректную ссылку на товар Wildberries", "error");
+    const wbRegex = /wildberries\.ru\/catalog\/\d+/;
+    if (!wbRegex.test(url)) {
+      showToast("Система работает только с Wildberries", "error");
       return;
     }
 
-    // 2. Extract SKU and generate projectId
-    const sku = match[1];
-    const projectId = `wb_${sku}`;
-    
-    // 3. Reset states completely before starting new analysis
+    // 2. Reset states
+    setPhase('INIT');
     setProgress(0);
     setLogs([]);
     setProductData(null);
-    
-    setAuditState('PROCESSING');
-    
-    setAuditState('PROCESSING');
-    setProgress(0);
-    setLogs([]);
-    
+    setDownloadUrl(null);
+
     try {
-      // 3. Call parse endpoint (Workflow A) to get product info
+      // 3. Call parse endpoint
       const parseResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.parse, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
       });
 
-      if (!parseResponse.ok) {
-        throw new Error(`Parse API error: ${parseResponse.status}`);
-      }
-
+      if (!parseResponse.ok) throw new Error(`Parse API error: ${parseResponse.status}`);
       const parseData = await parseResponse.json();
-      // Update productData immediately when parse returns
+
+      // 4. Update product data immediately
       if (parseData) {
         setProductData(parseData);
       }
 
-      // 4. Call trigger endpoint (Workflow B) to start Python analysis
+      // 5. Call trigger endpoint
       await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, projectId })
+        body: JSON.stringify({ url })
       });
 
-      // 5. Start polling for status
-      let consecutiveErrors = 0; // Track consecutive errors
-      
+      // 6. Start polling for status
+      setPhase('PARSING');
+      const guestId = getGuestId();
+      const projectId = `wb_${Date.now()}`; // Generate unique project ID
+
       const pollInterval = setInterval(async () => {
         try {
-          const statusResponse = await fetch(`${API_CONFIG.endpoints.status(projectId)}&t=${Date.now()}`);
-          
-          // Defensive response handling
-          const text = await statusResponse.text();
-          
-          // If response is empty, skip this polling cycle
-          if (!text || text.trim() === "") {
-            return;
-          }
-          
-          let rawData;
-          try {
-            rawData = JSON.parse(text);
-          } catch (e) {
-            console.error("Failed to parse status response:", e);
-            // If JSON parsing fails, continue polling with default values
-            rawData = { status: 'processing', stage: 'initializing' };
-          }
-          
-          // n8n often returns data as [{...}]. We need to flatten it.
-          const data = Array.isArray(rawData) ? rawData[0] : rawData;
-          
-          console.log("Processed Status Data:", data); // Now it should be an object
-          
-          // Reset error counter on successful response
-          consecutiveErrors = 0;
-          
-          // Safety check for data
-          const currentStage = data?.stage || 'initializing'; // Fallback to initializing
-          const currentStatus = data?.status || 'processing';
-          const downloadUrl = data?.download_url || null;
-          
-          const stageMapping: Record<string, string> = {
-            'initializing': "Initializing secure connection...",
-            'parsing': "Retrieving SKU metadata...",
-            'ai_analysis': "Agents are formulating growth hypothesis...",
-            'done': "Audit complete. PDF ready for download."
-          };
-          
-          // Prioritize real messages from the server
-          const liveText = data.message || stageMapping[currentStage] || "Processing...";
-          
-          // Duplicate prevention (strict)
-          setLogs(prev => {
-            const lastEntry = prev.length > 0 ? prev[prev.length - 1] : "";
-            if (lastEntry.includes(liveText)) return prev; // Skip if same message
-            const time = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
-            return [...prev, `[${time}] [${currentStage.toUpperCase()}] ${liveText}`];
-          });
-          
-          // Handle completion
-          if (currentStatus === "completed" && (data.downloadUrl || data.download_url || data.pdf_url)) {
-            // Set download URL from API response
-            setProductData((prev: any) => ({
-              ...prev,
-              downloadUrl: data.downloadUrl || data.download_url || data.pdf_url
-            }));
-            
-            setProgress(100);
-            
-            // Clear the interval
-            clearInterval(pollInterval);
-            
-            // Wait 1 second then set auditState to 'RESULT'
-            setTimeout(() => {
-              setAuditState('RESULT');
-            }, 1000);
-          } else if (currentStatus === 'not_found') {
-            // Stay in initializing stage, don't show error toast
-            // Update progress for initializing stage - slowly crawl from 5% to 25%
-            setProgress(prev => Math.min(25, prev + 1));
-          } else {
-           // Update progress based on stage
-           let progressValue = 0;
-           switch(currentStage) {
-             case 'initializing':
-               // Let progress slowly crawl from 5% to 25%
-               progressValue = Math.min(25, progress + 1);
-               break;
-             case 'parsing':
-               // Start from current progress and slowly crawl to 60%
-               progressValue = Math.min(60, progress + 1);
-               break;
-             case 'ai_analysis':
-               // Start from current progress and slowly crawl to 90%
-               progressValue = Math.min(90, progress + 1);
-               break;
-             case 'done':
-               // Jump to 90%
-               progressValue = 90;
-               break;
-             default:
-               progressValue = Math.min(90, progress + 1);
-           }
-           setProgress(progressValue);
-         }
-        } catch (err) {
-          console.error("Polling error:", err);
-          consecutiveErrors++; // Increment error counter
-          
-          // Only show error toast after 5 consecutive failures
-          if (consecutiveErrors >= 5) {
-            showToast("Ошибка соединения с сервером. Проверьте доступность сервиса.", "error");
-            consecutiveErrors = 0; // Reset after showing toast
-          }
-          
-          // In case of network error, show initializing status
-          setLogs(prev => {
-            const initializingLog = "[INITIALIZING] Initializing secure connection...";
-            if (prev.length > 0 && prev[prev.length - 1].includes(initializingLog)) {
-              return prev; // Already has initializing message, do nothing
+          const statusResponse = await fetch(
+            `${API_CONFIG.baseUrl}/webhook/wb-status?projectId=${projectId}&guestId=${guestId}&t=${Date.now()}`
+          );
+
+          if (!statusResponse.ok) throw new Error(`Status API error: ${statusResponse.status}`);
+          const data: ApiResponse = await statusResponse.json();
+
+          // Only update if phase has changed
+          if (data.phase !== phase) {
+            setPhase(data.phase);
+
+            // Handle phase-specific logic
+            switch(data.phase) {
+              case 'PARSING':
+              case 'ANALYZING':
+                setProgress(prev => Math.min(70, prev + 5));
+                break;
+              case 'TEASER_READY':
+                setProgress(85);
+                if (data.productData) setProductData(data.productData);
+                break;
+              case 'DONE':
+                setProgress(100);
+                if (data.productData) setProductData(data.productData);
+                // Wait 1 second before showing result view
+                setTimeout(() => {
+                  if (phase === 'DONE') setView('audit');
+                }, 1000);
+                break;
+              case 'PAID':
+                // Payment successful, prepare for PDF
+                break;
+              case 'PDF_READY':
+                setDownloadUrl(data.pdf_url || null);
+                break;
+              case 'ERROR':
+                clearInterval(pollInterval);
+                showToast("Ошибка при обработке запроса", "error");
+                break;
             }
-            const time = new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' });
-            return [...prev, `[${time}] [INITIALIZING] Initializing secure connection...`];
-          });
+          }
+
+          // Handle messages and logs
+          if (data.message) {
+            setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${data.message}`]);
+          } else {
+            // Cycle through fake logs every 4s if no real message
+            if (logs.length === 0 || Date.now() % 4000 < 100) {
+              const randomLog = FAKE_LOGS[Math.floor(Math.random() * FAKE_LOGS.length)];
+              setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${randomLog}`]);
+            }
+          }
+
+          // Stop polling if phase is terminal
+          if (['DONE', 'PAID', 'PDF_READY', 'ERROR'].includes(data.phase)) {
+            clearInterval(pollInterval);
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+          clearInterval(pollInterval);
+          setPhase('ERROR');
+          showToast("Ошибка соединения с сервером", "error");
         }
       }, 3000); // Poll every 3 seconds
-      
-    } catch (error) {
+
+    } catch (error: any) {
       console.error("Analysis error:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      showToast(`Ошибка: ${errorMessage}`, "error");
-      setAuditState('IDLE');
+      setPhase('ERROR');
+      showToast(`Ошибка: ${error.message}`, "error");
+    }
+  };
+
+  const handleEmailSubmit = async () => {
+    if (!email) {
+      showToast("Пожалуйста, введите email", "error");
+      return;
+    }
+
+    try {
+      await fetch(API_CONFIG.baseUrl + '/webhook/wb/save-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, projectId: `wb_${Date.now()}` })
+      });
+
+      setIsEmailModalOpen(false);
+      // Show payment options
+      setPhase('WAITING_PAYMENT');
+    } catch (error) {
+      console.error("Error saving lead:", error);
+      showToast("Ошибка при сохранении email", "error");
     }
   };
 
@@ -226,9 +252,39 @@ const WBAuditWidget = () => {
   }, [logs]);
 
   return (
-    <div className="w-full bg-background text-foreground font-sans">
+    <div className="w-full bg-card text-foreground font-sans">
       
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <Modal 
+        isOpen={isEmailModalOpen} 
+        onClose={() => setIsEmailModalOpen(false)} 
+        title="Получить отчет"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">Введите ваш email, чтобы получить доступ к отчету</p>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+          />
+          <div className="flex gap-2">
+            <button 
+              onClick={handleEmailSubmit}
+              className="flex-1 bg-primary text-primary-foreground py-2 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Продолжить
+            </button>
+            <button 
+              onClick={() => setIsEmailModalOpen(false)}
+              className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <div className="max-w-[1700px] mx-auto w-full p-4 md:p-8 lg:p-12">
         
@@ -236,7 +292,7 @@ const WBAuditWidget = () => {
         <div className="flex justify-between items-center mb-12 select-none">
           <div className="text-lg font-bold tracking-tight flex items-center gap-2">
             <div className="w-2 h-2 bg-[#ff6d5a] rounded-full animate-pulse" />
-            WB AGENT OS <span className="text-[10px] text-muted-foreground bg-card border border-border px-1.5 rounded ml-1">v4.0.1</span>
+            WB AGENT OS <span className="text-[10px] text-muted-foreground bg-background border border-border px-1.5 rounded ml-1">v4.0.1</span>
           </div>
         </div>
 
@@ -292,7 +348,7 @@ const WBAuditWidget = () => {
           <div className="max-w-[1300px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             
             {/* STATE: INPUT */}
-            {auditState === 'IDLE' && (
+            {phase === 'INIT' && (
               <div className="bg-card border border-border p-8 md:p-12 rounded-3xl shadow-2xl">
                 <div className="text-center mb-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider mb-6">
@@ -303,8 +359,8 @@ const WBAuditWidget = () => {
                 </div>
                 
                 <div className="space-y-6">
-                  <input
-                    type="url"
+                  <input 
+                    type="url" 
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://www.wildberries.ru/catalog/..."
@@ -315,18 +371,18 @@ const WBAuditWidget = () => {
                     onClick={handleStartAnalysis}
                     className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
                   >
-                    ЗАПУСТИТЬ СКАНЕР <Rocket size={18} />
+                    ЗАПУСТИТЬ СКАНЕР <Rocket size={20} />
                   </button>
                   
-                  <button onClick={() => setView('grid')} className="w-full text-xs font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest mt-4">
+                  <button onClick={() => setView('grid')} className="w-full text-xs font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest">
                     ← Вернуться назад
                   </button>
                 </div>
               </div>
             )}
 
-            {/* STATE: PROCESSING */}
-            {auditState === 'PROCESSING' && (
+            {/* STATE: PROCESSING (PARSING, ANALYZING, etc.) */}
+            {(phase === 'PARSING' || phase === 'ANALYZING' || phase === 'TEASER_READY') && (
               <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-2xl">
                 <div className="p-6 border-b border-border bg-muted/20 flex justify-between items-center">
                   <div className="flex items-center gap-3 text-primary font-mono text-xs font-bold">
@@ -339,7 +395,7 @@ const WBAuditWidget = () => {
                   {/* Progress Bar */}
                   <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-primary transition-all duration-300 ease-out"
+                      className="h-full bg-primary transition-all duration-700 ease-out"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -350,7 +406,7 @@ const WBAuditWidget = () => {
                       {logs.map((log, i) => (
                         <div key={i} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-200">
                           <span className="text-muted-foreground/50">[{new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second:'2-digit' })}]</span>
-                          <span className={`${log.includes('[RISK]') ? 'text-[#ff6d5a]' : 'text-primary'}`}>
+                          <span className={`${log.includes('[ERROR]') ? 'text-red-500' : 'text-primary'}`}>
                             {log}
                           </span>
                         </div>
@@ -363,21 +419,25 @@ const WBAuditWidget = () => {
             )}
 
             {/* STATE: RESULT */}
-            {auditState === 'RESULT' && (
+            {phase === 'DONE' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
                 
                 {/* Product Header */}
                 <div className="bg-card border border-border rounded-3xl p-8 flex gap-8 items-center shadow-lg">
                   <div className="w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
-                     <img src={productData?.image_url} alt="Product" className="w-full h-full object-cover" />
+                     <img 
+                        src={productData?.media || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"} 
+                        alt="Product" 
+                        className="w-full h-full object-cover" 
+                     />
                   </div>
                   <div>
                     <div className="text-[10px] font-bold text-[#ff6d5a] tracking-widest uppercase mb-2">AUDIT COMPLETE</div>
-                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.name}</h2>
+                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.name || "Product Name"}</h2>
                     <div className="flex items-center gap-2 mt-3 text-base text-muted-foreground">
-                        <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating}</span>
-                        <span>•</span>
-                        <span>{productData?.reviews_count} отзывов</span>
+                      <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating || "5.0"}</span>
+                      <span>•</span>
+                      <span>{productData?.reviews_count || "0"} отзывов</span>
                     </div>
                   </div>
                 </div>
@@ -387,56 +447,84 @@ const WBAuditWidget = () => {
                   Обнаружено 5 критических ошибок
                 </div>
 
-                {/* Issues List */}
+                {/* Teaser List */}
                 <div className="bg-card border border-border rounded-3xl overflow-hidden">
                   <div className="divide-y divide-border">
-                    <div className="p-6 flex gap-4">
-                      <div className="mt-1 text-green-500"><CheckCircle2 size={20} /></div>
-                      <div>
-                        <div className="font-bold text-foreground">SEO Оптимизация</div>
-                        <p className="text-sm text-muted-foreground mt-1">Отсутствуют 2 высокочастотных ключа.</p>
+                    {productData?.teaser?.slice(0, 2).map((item, i) => (
+                      <div key={i} className="p-6 flex gap-4">
+                        <div className="mt-1 text-green-500"><CheckCircle2 size={20} /></div>
+                        <div>
+                          <div className="font-bold text-foreground">{item.title}</div>
+                          <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                        </div>
                       </div>
-                    </div>
-                    {/* Blurred Item */}
-                    <div className="p-6 flex gap-4 relative">
-                      <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
-                      <div className="w-full blur-[4px] select-none opacity-50">
-                        <div className="font-bold">Визуальный контент (CTR)</div>
-                        <p className="text-sm mt-1">Конверсия снижена из-за низкой контрастности фона.</p>
+                    ))}
+                    
+                    {/* Blurred Items (Locked Content) */}
+                    <div className="relative">
+                      <div className="backdrop-blur-md select-none opacity-50">
+                        <div className="p-6 flex gap-4">
+                          <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                          <div>
+                            <div className="font-bold text-foreground">Визуальный контент (CTR)</div>
+                            <p className="text-sm text-muted-foreground mt-1">Конверсия снижена из-за низкой контрастности фона.</p>
+                          </div>
+                        </div>
+                        
+                        <div className="p-6 flex gap-4">
+                          <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                          <div>
+                            <div className="font-bold text-foreground">SEO Оптимизация</div>
+                            <p className="text-sm text-muted-foreground mt-1">Отсутствуют 2 высокочастотных ключа.</p>
+                          </div>
+                        </div>
+                        
+                        <div className="p-6 flex gap-4">
+                          <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                          <div>
+                            <div className="font-bold text-foreground">Целевая аудитория</div>
+                            <p className="text-sm text-muted-foreground mt-1">Не учтены особенности поведения покупателей.</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                         <Lock size={20} className="text-foreground" />
+                      
+                      {/* Overlay Card */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm">
+                        <div className="text-center p-8">
+                          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Lock size={32} className="text-primary" />
+                          </div>
+                          <h3 className="text-xl font-bold mb-2">Отчет заблокирован</h3>
+                          <p className="text-muted-foreground mb-6">Полный анализ доступен после оплаты</p>
+                          <button 
+                            onClick={() => setIsEmailModalOpen(true)}
+                            className="bg-primary text-primary-foreground py-3 px-6 rounded-xl hover:opacity-90 transition-opacity font-bold"
+                          >
+                            Получить доступ
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Pricing */}
+                {/* Pricing Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Basic */}
                   <div className="bg-card border border-border p-8 rounded-3xl flex flex-col min-h-[300px]">
                     <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">BASIC</div>
                     <div className="text-3xl font-black mb-6">500 ₽</div>
                     <ul className="text-sm space-y-3 mb-8 text-muted-foreground flex-grow">
-                      <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • Полный список ошибок</li>
+                      <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • Список ошибок</li>
                       <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • Рекомендации по SEO</li>
                       <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • PDF Отчет</li>
                     </ul>
-                    {productData?.downloadUrl ? (
-                      <a
-                        href={productData.downloadUrl}
-                        className="w-full py-4 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-bold uppercase text-center"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Скачать отчет
-                      </a>
-                    ) : (
-                      <button className="w-full py-4 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-bold uppercase flex items-center justify-center">
-                        <div className="w-4 h-4 border-t-2 border-r-2 border-primary rounded-full animate-spin mr-2"></div>
-                        Генерация...
-                      </button>
-                    )}
+                    <button 
+                      onClick={() => setIsEmailModalOpen(true)}
+                      className="w-full py-4 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-bold uppercase"
+                    >
+                      Получить отчет
+                    </button>
                   </div>
 
                   {/* Pro */}
@@ -451,30 +539,99 @@ const WBAuditWidget = () => {
                         <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • ТЗ для дизайнера</li>
                         <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • Индивидуальный подход</li>
                         </ul>
-                        {productData?.downloadUrl ? (
-                          <a
-                            href={productData.downloadUrl}
-                            className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center gap-2"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                          Скачать стратегию <Rocket size={16} />
-                          </a>
-                        ) : (
-                          <button className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center">
-                            <div className="w-4 h-4 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
-                            Генерация...
-                          </button>
-                        )}
+                        <button 
+                          onClick={() => setIsEmailModalOpen(true)}
+                          className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center gap-2"
+                        >
+                        Скачать стратегию <Rocket size={16} />
+                        </button>
                     </div>
                   </div>
                 </div>
 
                 <button 
-                  onClick={() => {setView('grid'); setAuditState('IDLE'); setUrl('');}}
+                  onClick={() => {setView('grid'); setPhase('INIT'); setUrl('');}}
                   className="w-full py-4 text-xs font-bold text-muted-foreground hover:text-foreground uppercase tracking-widest"
                 >
                   ← Новый анализ
+                </button>
+              </div>
+            )}
+
+            {/* WAITING PAYMENT STATE */}
+            {phase === 'WAITING_PAYMENT' && (
+              <div className="bg-card border border-border rounded-3xl p-12 text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ShoppingCart size={32} className="text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Оплата</h3>
+                <p className="text-muted-foreground mb-8">Пожалуйста, выберите тарифный план для получения полного отчета</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                  <button 
+                    onClick={() => setPhase('PAID')}
+                    className="bg-card border border-border p-6 rounded-2xl hover:border-primary/50 transition-colors"
+                  >
+                    <div className="text-3xl font-black mb-2">500 ₽</div>
+                    <div className="text-sm uppercase tracking-widest">Basic Report</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => setPhase('PAID')}
+                    className="bg-card border border-primary/30 p-6 rounded-2xl hover:border-primary/50 transition-colors"
+                  >
+                    <div className="text-3xl font-black mb-2">2 999 ₽</div>
+                    <div className="text-sm uppercase tracking-widest">Pro Strategy</div>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* PAID STATE */}
+            {phase === 'PAID' && (
+              <div className="bg-card border border-border rounded-3xl p-12 text-center">
+                <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Loader2 size={32} className="text-green-500 animate-spin" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Обработка платежа</h3>
+                <p className="text-muted-foreground">Подготовка вашего персонального PDF-отчета...</p>
+              </div>
+            )}
+
+            {/* PDF READY STATE */}
+            {phase === 'PDF_READY' && downloadUrl && (
+              <div className="bg-card border border-border rounded-3xl p-12 text-center">
+                <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 size={32} className="text-green-500" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Отчет готов!</h3>
+                <p className="text-muted-foreground mb-8">Ваш персональный PDF-отчет успешно сгенерирован</p>
+                
+                <a 
+                  href={downloadUrl} 
+                  className="inline-block bg-primary text-primary-foreground py-4 px-8 rounded-xl hover:opacity-90 transition-opacity font-bold"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Скачать PDF
+                </a>
+              </div>
+            )}
+
+            {/* ERROR STATE */}
+            {phase === 'ERROR' && (
+              <div className="bg-card border border-border rounded-3xl p-12 text-center">
+                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <XCircle size={32} className="text-red-500" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Ошибка</h3>
+                <p className="text-muted-foreground mb-8">Произошла ошибка при обработке вашего запроса</p>
+                
+                <button 
+                  onClick={() => setPhase('INIT')}
+                  className="bg-primary text-primary-foreground py-3 px-8 rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  Повторить попытку
                 </button>
               </div>
             )}
