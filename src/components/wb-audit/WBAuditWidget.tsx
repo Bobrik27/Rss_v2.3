@@ -137,7 +137,7 @@ const WBAuditWidget = () => {
       const parseResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.parse, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sku })  // Send only SKU, not full URL
+        body: JSON.stringify({ url })  // Send full URL to prevent match() error in n8n
       });
 
       if (!parseResponse.ok) throw new Error(`Parse API error: ${parseResponse.status}`);
@@ -161,11 +161,15 @@ const WBAuditWidget = () => {
       }
 
       // 5. Call trigger endpoint
+      // Extract email from user input or use a default value
+      const userEmail = email || 'anonymous@user.com';
+      
       const triggerResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          product_url: url,
+          url: url,  // Changed from product_url to match n8n expectation
+          email: userEmail, // Added missing email parameter
           competitors: []  // Add empty competitors array to match backend expectation
         })
       });
