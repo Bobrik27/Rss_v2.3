@@ -229,7 +229,8 @@ const WBAuditWidget = () => {
               
               if (defaultData.phase === 'ERROR') {
                 clearInterval(pollInterval);
-                showToast("Backend is currently under maintenance. Retrying...", "info");
+                // Show a more direct error message
+                showToast("Backend is currently unreachable", "error");
               }
             }
             
@@ -285,7 +286,7 @@ const WBAuditWidget = () => {
                   break;
                 case 'ERROR':
                   clearInterval(pollInterval);
-                  showToast("Backend is currently under maintenance. Retrying...", "info");
+                  // Set phase to ERROR but don't show popup notification to reduce noise
                   break;
               }
             }
@@ -371,7 +372,7 @@ const WBAuditWidget = () => {
   }, [logs]);
 
   return (
-    <div className="w-full bg-card text-foreground font-sans">
+    <div className="w-full bg-card text-foreground font-sans min-h-[550px] flex flex-col">
       
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       <Modal 
@@ -739,18 +740,22 @@ const WBAuditWidget = () => {
 
             {/* ERROR STATE */}
             {phase === 'ERROR' && (
-              <div className="bg-card border border-border rounded-3xl p-12 text-center">
+              <div className="flex-1 flex flex-col items-center justify-center bg-card border border-border rounded-3xl p-12 text-center">
                 <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <XCircle size={32} className="text-red-500" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">Ошибка</h3>
+                <h3 className="text-2xl font-bold mb-2">Сервис временно недоступен</h3>
                 <p className="text-muted-foreground mb-8">Произошла ошибка при обработке вашего запроса</p>
                 
-                <button 
-                  onClick={() => setPhase('INIT')}
+                <button
+                  onClick={() => {
+                    setPhase('INIT');
+                    setView('grid');
+                    setUrl('');
+                  }}
                   className="bg-primary text-primary-foreground py-3 px-8 rounded-xl hover:opacity-90 transition-opacity"
                 >
-                  Повторить попытку
+                  Попробовать снова
                 </button>
               </div>
             )}
