@@ -125,10 +125,19 @@ const WBAuditWidget = () => {
 
     try {
       // 3. Call parse endpoint
+      // Extract SKU from URL for the parse endpoint
+      const skuMatch = url.match(/catalog\/(\d+)/);
+      const sku = skuMatch ? skuMatch[1] : null;
+      
+      if (!sku) {
+        showToast("Invalid Wildberries URL - SKU not found", "error");
+        return;
+      }
+      
       const parseResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.parse, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ sku })  // Send only SKU, not full URL
       });
 
       if (!parseResponse.ok) throw new Error(`Parse API error: ${parseResponse.status}`);
@@ -155,7 +164,10 @@ const WBAuditWidget = () => {
       const triggerResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({
+          product_url: url,
+          competitors: []  // Add empty competitors array to match backend expectation
+        })
       });
 
       if (!triggerResponse.ok) {
@@ -179,8 +191,11 @@ const WBAuditWidget = () => {
 
       // 6. Start polling for status
       setPhase('PARSING');
+      // Extract SKU from URL to match backend expectations
+      const skuMatch = url.match(/catalog\/(\d+)/);
+      const sku = skuMatch ? skuMatch[1] : Date.now().toString();
       const guestId = getGuestId();
-      const projectId = `wb_${Date.now()}`; // Generate unique project ID
+      const projectId = `wb_${sku}`; // Generate project ID using SKU to match backend expectations
 
       const pollInterval = setInterval(async () => {
         try {
