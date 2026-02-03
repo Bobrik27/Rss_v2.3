@@ -12,8 +12,33 @@ type Phase =
 
 interface ProductData {
   name?: string;
+  imt_name?: string;
+  nm_id?: string;
+  sku?: string;
   media?: string;
-  teaser?: Array<{ title: string; description: string }>;
+  image?: string;
+  image_url?: string;
+  rating?: number;
+  reviews_count?: number;
+  feedback_count?: number;
+  teaser?: {
+    error_count?: number;
+    score?: number;
+    top_issues?: Array<{ title: string; description: string } | string>;
+    [key: string]: any;
+  };
+  data?: {
+    media?: string;
+    image?: string;
+    image_url?: string;
+  };
+  details?: {
+    image?: string;
+  };
+  options?: Array<{
+    image?: string;
+    photo_url?: string;
+  }>;
   [key: string]: any;
 }
 
@@ -60,8 +85,8 @@ const Modal = ({ isOpen, onClose, title, children }: {
 };
 
 const WBAuditWidget = () => {
-  const [view, setView] = useState<'grid' | 'audit'>('grid'); 
-  const [phase, setPhase] = useState<Phase>('INIT'); 
+  const [view, setView] = useState<'grid' | 'audit'>('grid');
+  const [phase, setPhase] = useState<Phase>('INIT');
   const [url, setUrl] = useState('');
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
@@ -71,6 +96,7 @@ const WBAuditWidget = () => {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const lastApiCallTimeRef = useRef<number>(Date.now());
 
   const FAKE_LOGS = [
     "[SYSTEM] Initializing secure connection...",
@@ -301,14 +327,19 @@ const WBAuditWidget = () => {
               }
             }
 
-            // Handle messages and logs
+            // Handle messages and logs - Priority to real API messages
             if (data.message) {
+              // Add real API message to logs and update last API call time
               setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${data.message}`]);
+              lastApiCallTimeRef.current = Date.now();
             } else {
-              // Cycle through fake logs every 4s if no real message
-              if (logs.length === 0 || Date.now() % 4000 < 100) {
+              // Only add fake log if no response from server for 5+ seconds
+              const now = Date.now();
+              if (logs.length === 0 || (now - lastApiCallTimeRef.current) > 5000) {
                 const randomLog = FAKE_LOGS[Math.floor(Math.random() * FAKE_LOGS.length)];
                 setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${randomLog}`]);
+                // Still update the last API call time to prevent continuous fake logs
+                lastApiCallTimeRef.current = now;
               }
             }
 
@@ -556,18 +587,18 @@ const WBAuditWidget = () => {
                 <div className="bg-card border border-border rounded-3xl p-8 flex gap-8 items-center shadow-lg">
                   <div className="w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
                      <img
-                        src={productData?.media || productData?.image_url || productData?.image || (productData?.options && productData.options[0]?.image) || (productData?.options && productData?.options[0]?.photo_url) || productData?.data?.media || productData?.data?.image_url || productData?.details?.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"}
+                        src={productData?.media || productData?.image || productData?.image_url || productData?.data?.media || productData?.data?.image || productData?.details?.image || (productData?.options && productData?.options[0]?.image) || (productData?.options && productData?.options[0]?.photo_url) || "https://placehold.co/300x300?text=No+Image"}
                         alt="Product"
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
+                          target.src = "https://placehold.co/300x300?text=No+Image";
                         }}
                      />
                   </div>
                   <div>
                     <div className="text-[10px] font-bold text-[#ff6d5a] tracking-widest uppercase mb-2">AUDIT COMPLETE</div>
-                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.name || (productData?.nm_id ? `Товар ${productData.nm_id}` : "Анализ завершен")}</h2>
+                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.name || `Товар ${productData?.nm_id || productData?.sku || '[SKU]'}`}</h2>
                     <div className="flex items-center gap-2 mt-3 text-base text-muted-foreground">
                       <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating || "5.0"}</span>
                       <span>•</span>
@@ -578,48 +609,67 @@ const WBAuditWidget = () => {
 
                 {/* Alert */}
                 <div className="bg-[#ff6d5a]/10 border border-[#ff6d5a]/20 text-[#ff6d5a] p-6 rounded-xl text-center font-bold text-lg uppercase tracking-wider">
-                  Обнаружено 5 критических ошибок
+                  {(productData && productData.teaser && productData.teaser.error_count && productData.teaser.error_count > 0)
+                    ? `ОБНАРУЖЕНО ${productData.teaser.error_count || 0} КРИТИЧЕСКИХ ОШИБОК`
+                    : 'АНАЛИЗ ЗАВЕРШЕН, КРИТИЧЕСКИХ ОШИБОК НЕ НАЙДЕНО'}
                 </div>
 
                 {/* Teaser List */}
                 <div className="bg-card border border-border rounded-3xl overflow-hidden">
                   <div className="divide-y divide-border">
-                    {productData?.teaser?.slice(0, 2).map((item, i) => (
+                    {productData?.teaser?.top_issues?.slice(0, 2).map((issue: any, i: number) => (
                       <div key={i} className="p-6 flex gap-4">
                         <div className="mt-1 text-green-500"><CheckCircle2 size={20} /></div>
                         <div>
-                          <div className="font-bold text-foreground">{item.title}</div>
-                          <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                          <div className="font-bold text-foreground">{typeof issue === 'string' ? issue : issue.title || issue.problem || issue.issue || `Проблема ${i+1}`}</div>
+                          <p className="text-sm text-muted-foreground mt-1">{typeof issue === 'object' ? issue.description || issue.details || issue.summary || '' : ''}</p>
                         </div>
                       </div>
                     ))}
                     
-                    {/* Blurred Items (Locked Content) */}
+                    {/* Blurred Items (Locked Content) - Display real data from API if available */}
                     <div className="relative">
                       <div className="backdrop-blur-md select-none opacity-50">
-                        <div className="p-6 flex gap-4">
-                          <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
-                          <div>
-                            <div className="font-bold text-foreground">Визуальный контент (CTR)</div>
-                            <p className="text-sm text-muted-foreground mt-1">Конверсия снижена из-за низкой контрастности фона.</p>
-                          </div>
-                        </div>
-                        
-                        <div className="p-6 flex gap-4">
-                          <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
-                          <div>
-                            <div className="font-bold text-foreground">SEO Оптимизация</div>
-                            <p className="text-sm text-muted-foreground mt-1">Отсутствуют 2 высокочастотных ключа.</p>
-                          </div>
-                        </div>
-                        
-                        <div className="p-6 flex gap-4">
-                          <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
-                          <div>
-                            <div className="font-bold text-foreground">Целевая аудитория</div>
-                            <p className="text-sm text-muted-foreground mt-1">Не учтены особенности поведения покупателей.</p>
-                          </div>
-                        </div>
+                        {productData?.teaser?.top_issues?.slice(2).map((issue: any, i: number) => {
+                          const idx = i + 2; // Start from index 2
+                          return (
+                            <div key={idx} className="p-6 flex gap-4">
+                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                              <div>
+                                <div className="font-bold text-foreground">{typeof issue === 'string' ? issue : issue.title || issue.problem || issue.issue || `Проблема ${idx}`}</div>
+                                <p className="text-sm text-muted-foreground mt-1">{typeof issue === 'object' ? issue.description || issue.details || issue.summary || '' : ''}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {/* Fallback static content in case API doesn't return enough issues */}
+                        {(!productData?.teaser?.top_issues || productData?.teaser?.top_issues.length <= 2) && (
+                          <>
+                            <div className="p-6 flex gap-4">
+                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                              <div>
+                                <div className="font-bold text-foreground">Визуальный контент (CTR)</div>
+                                <p className="text-sm text-muted-foreground mt-1">Конверсия снижена из-за низкой контрастности фона.</p>
+                              </div>
+                            </div>
+                            
+                            <div className="p-6 flex gap-4">
+                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                              <div>
+                                <div className="font-bold text-foreground">SEO Оптимизация</div>
+                                <p className="text-sm text-muted-foreground mt-1">Отсутствуют 2 высокочастотных ключа.</p>
+                              </div>
+                            </div>
+                            
+                            <div className="p-6 flex gap-4">
+                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                              <div>
+                                <div className="font-bold text-foreground">Целевая аудитория</div>
+                                <p className="text-sm text-muted-foreground mt-1">Не учтены особенности поведения покупателей.</p>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                       
                       {/* Overlay Card */}
