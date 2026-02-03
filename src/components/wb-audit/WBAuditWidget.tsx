@@ -191,11 +191,10 @@ const WBAuditWidget = () => {
 
       // 6. Start polling for status
       setPhase('PARSING');
-      // Extract SKU from URL to match backend expectations
-      const skuMatch = url.match(/catalog\/(\d+)/);
-      const sku = skuMatch ? skuMatch[1] : Date.now().toString();
+      // Use the previously extracted SKU to match backend expectations
+      const skuForProject = skuMatch ? skuMatch[1] : Date.now().toString();
       const guestId = getGuestId();
-      const projectId = `wb_${sku}`; // Generate project ID using SKU to match backend expectations
+      const projectId = `wb_${skuForProject}`; // Generate project ID using SKU to match backend expectations
 
       const pollInterval = setInterval(async () => {
         try {
