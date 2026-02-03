@@ -164,14 +164,19 @@ const WBAuditWidget = () => {
       // Extract email from user input or use a default value
       const userEmail = email || 'anonymous@user.com';
       
+      // Log the request body to verify email field is included
+      const requestBody = {
+        url: url,  // Changed from product_url to match n8n expectation
+        email: userEmail, // Added missing email parameter
+        competitors: []  // Add empty competitors array to match backend expectation
+      };
+      
+      console.log("DEBUG: Sending request body to trigger endpoint:", requestBody);
+      
       const triggerResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: url,  // Changed from product_url to match n8n expectation
-          email: userEmail, // Added missing email parameter
-          competitors: []  // Add empty competitors array to match backend expectation
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!triggerResponse.ok) {
@@ -251,6 +256,9 @@ const WBAuditWidget = () => {
           
           try {
             const data: ApiResponse = JSON.parse(text);
+            
+            // Debug log to verify what data is being received
+            console.log("DEBUG: Status API response data:", data);
 
             // Only update if phase has changed
             if (data.phase !== phase) {
@@ -264,14 +272,16 @@ const WBAuditWidget = () => {
                   break;
                 case 'TEASER_READY':
                   setProgress(85);
-                  // Data mapping fix: check both data and productData fields
-                  const teaserProductData = data.data || data.productData;
+                  // Data mapping fix: check multiple possible fields for product data
+                  const teaserProductData = data.productData || data.data || data;
+                  console.log("DEBUG: Teaser product data:", teaserProductData);
                   if (teaserProductData) setProductData(teaserProductData);
                   break;
                 case 'DONE':
                   setProgress(100);
-                  // Data mapping fix: check both data and productData fields
-                  const doneProductData = data.data || data.productData;
+                  // Data mapping fix: check multiple possible fields for product data
+                  const doneProductData = data.productData || data.data || data;
+                  console.log("DEBUG: Done product data:", doneProductData);
                   if (doneProductData) setProductData(doneProductData);
                   // Wait 1 second before showing result view
                   setTimeout(() => {
@@ -545,19 +555,23 @@ const WBAuditWidget = () => {
                 {/* Product Header */}
                 <div className="bg-card border border-border rounded-3xl p-8 flex gap-8 items-center shadow-lg">
                   <div className="w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
-                     <img 
-                        src={productData?.media || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"} 
-                        alt="Product" 
-                        className="w-full h-full object-cover" 
+                     <img
+                        src={productData?.media || productData?.image_url || productData?.data?.media || productData?.data?.image_url || productData?.details?.image || productData?.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"}
+                        alt="Product"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop";
+                        }}
                      />
                   </div>
                   <div>
                     <div className="text-[10px] font-bold text-[#ff6d5a] tracking-widest uppercase mb-2">AUDIT COMPLETE</div>
-                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.name || "Product Name"}</h2>
+                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.name || productData?.data?.name || productData?.details?.name || "Анализ завершен"}</h2>
                     <div className="flex items-center gap-2 mt-3 text-base text-muted-foreground">
                       <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating || "5.0"}</span>
                       <span>•</span>
-                      <span>{productData?.reviews_count || "0"} отзывов</span>
+                      <span>{productData?.reviews_count || productData?.feedback_count || "0"} отзывов</span>
                     </div>
                   </div>
                 </div>
