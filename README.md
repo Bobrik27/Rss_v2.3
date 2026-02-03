@@ -166,3 +166,130 @@ The site is configured for static site generation and can be deployed to platfor
 ## License
 
 This project is licensed under the MIT License.
+
+## AI Agency Core (_core_remote)
+
+### Overview
+The `_core_remote` directory contains the backend infrastructure for the AI Agency Operating System - a sophisticated autonomous agent framework built with CrewAI and FastAPI. This system handles the core business logic for AI-powered auditing, analysis, and reporting.
+
+### Tech Stack
+- **Core Framework**: CrewAI for multi-agent systems
+- **API Layer**: FastAPI for REST endpoints
+- **Containerization**: Docker & docker-compose
+- **PDF Generation**: WeasyPrint with Jinja2 templates
+- **Data Processing**: PyYAML, JSON, Pandas
+- **Security**: Service token authentication
+- **LLM Support**: OpenAI GPT, Google Gemini, Groq, DeepSeek, xAI Grok
+
+### Key Components
+
+#### Core Architecture
+- **[`main.py`](src/main.py:1)**: Central engine orchestrating agent workflows, including pipeline execution, financial calculations, and post-processing
+- **[`api.py`](src/api.py:1)**: FastAPI application handling HTTP requests, background tasks, and webhook callbacks
+- **[`state_manager.py`](src/state_manager.py:1)**: Project state management with locking mechanisms and passport data storage
+- **[`agent_factory.py`](src/agent_factory.py:1)**: LLM factory with fallback mechanisms and agent configuration loader
+- **[`pdf_engine.py`](src/pdf_engine.py:1)**: PDF generation from Markdown with licensing tiers and watermarks
+
+#### Tools
+- **[`wb_scraper.py`](src/core/tools/wb_scraper.py:1)**: Wildberries product data scraper with API integration and mock data fallback
+- **[`review_scraper.py`](src/core/tools/review_scraper.py:1)**: Google Maps/TripAdvisor review scraper with mock data functionality
+- **[`asset_manager.py`](src/core/tools/asset_manager.py:1)**: Asset management for project files and resources
+
+#### Agent Roster
+- **[`wb_analyst.yaml`](src/roster/wb_analyst.yaml:1)**: Senior Wildberries Data Auditor for mechanical fact extraction
+- **[`wb_writer.yaml`](src/roster/wb_writer.yaml:1)**: Technical Report Compiler for PDF formatting
+- **[`wb_scraper_agent.yaml`](src/roster/wb_scraper_agent.yaml:1)**: Wildberries Data Collector for product information
+- **Multiple specialized agents**: Including builder_devops, cfo_guardian, closer_shark, diagnostic_prime, and others
+
+#### Workflow Flows
+- **WB Audit Flow**: Product analysis and reporting workflow
+- **Enterprise OS Flow**: Multi-stage business analysis (discovery, strategy, architecture, commercial, handover)
+- **Review Detective Flow**: Review analysis and sentiment investigation
+
+#### Configuration
+- **`.env.example`**: Template for environment variables and API keys
+- **[`requirements.txt`](requirements.txt:1)**: Dependencies for AI core, API layer, legacy UI, and PDF engine
+- **[`Dockerfile`](Dockerfile:1)**: Container setup with system dependencies for PDF generation
+- **[`docker-compose.yml`](docker-compose.yml:1)**: Multi-service orchestration for AI core
+
+### Features
+- **Autonomous Pipelines**: Multi-stage business analysis with automatic progression
+- **LLM Orchestration**: Flexible agent configuration with model fallbacks
+- **Real-time Status Tracking**: Progress monitoring with phase indicators
+- **Financial Calculations**: ROI metrics and payback period calculations
+- **Multi-tier Licensing**: Guest, starter, business, and premium license levels
+- **Secure Authentication**: Service token-based access control
+- **Asynchronous Processing**: Background task execution with resource limiting
+- **Mock Data Fallback**: Resilient operation when external APIs are unavailable
+
+### API Endpoints
+- **Health Check**: `/health` for system status verification
+- **WB Parse**: `/api/v1/wb-audit/parse` for synchronous product data retrieval
+- **WB Full Audit**: `/api/v1/wb-audit/full` for asynchronous audit processing
+- **Status Check**: `/api/v1/wb-audit/status/{project_id}` for audit progress tracking
+- **PDF Generation**: `/api/v1/wb-audit/generate-pdf` for report compilation
+
+### File Structure
+```
+_core_remote/
+├── .env.example
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
+├── func.md
+├── mapfiles.md
+├── project_analysis.md
+├── requirements.txt
+├── test_stealth.py
+├── src/
+│   ├── api.py
+│   ├── app.py
+│   ├── main.py
+│   ├── roster_loader.py
+│   ├── __init__.py
+│   ├── assets/
+│   │   ├── logo.png
+│   │   ├── templates/
+│   │   │   ├── report_template.html
+│   │   │   └── style.css
+│   ├── config/
+│   │   ├── intake_questions.json
+│   │   ├── products.yaml
+│   ├── core/
+│   │   ├── agent_factory.py
+│   │   ├── auto_teaser.py
+│   │   ├── calculator.py
+│   │   ├── pdf_engine.py
+│   │   ├── security.py
+│   │   ├── state_manager.py
+│   │   ├── translator.py
+│   │   └── tools/
+│   │       ├── asset_manager.py
+│   │       ├── review_scraper.py
+│   │       ├── wb_scraper.py
+│   │       └── wb_analyzer/
+│   │           └── wb_scraper.py
+│   ├── flows/
+│   │   ├── enterprise_os/
+│   │   │   ├── broker_agent.py
+│   │   │   ├── stage_6_handover.py
+│   │   │   └── stage_1_5_questionnaire/
+│   │   │   └── stage_1_discovery/
+│   │   │   └── stage_2_intel/
+│   │   │   └── stage_3_strategy/
+│   │   │   └── stage_4_architecture/
+│   │   │   └── stage_5_commercial/
+│   │   ├── review_detective/
+│   │   │   └── teaser/
+│   │   └── wb_audit/
+│   └── roster/
+│       ├── builder_devops.yaml
+│       ├── cfo_guardian.yaml
+│       ├── closer_shark.yaml
+│       ├── diagnostic_prime.yaml
+│       ├── wb_analyst.yaml
+│       ├── wb_writer.yaml
+│       └── [many more agent configurations]
+```
+
+This backend system works in conjunction with the frontend Astro application to provide a complete AI-powered auditing and analysis platform.
