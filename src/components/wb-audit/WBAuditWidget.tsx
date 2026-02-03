@@ -556,7 +556,7 @@ const WBAuditWidget = () => {
                 <div className="bg-card border border-border rounded-3xl p-8 flex gap-8 items-center shadow-lg">
                   <div className="w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
                      <img
-                        src={productData?.media || productData?.image_url || productData?.data?.media || productData?.data?.image_url || productData?.details?.image || productData?.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"}
+                        src={productData?.media || productData?.image_url || productData?.image || (productData?.options && productData.options[0]?.image) || (productData?.options && productData?.options[0]?.photo_url) || productData?.data?.media || productData?.data?.image_url || productData?.details?.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"}
                         alt="Product"
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -567,7 +567,7 @@ const WBAuditWidget = () => {
                   </div>
                   <div>
                     <div className="text-[10px] font-bold text-[#ff6d5a] tracking-widest uppercase mb-2">AUDIT COMPLETE</div>
-                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.name || productData?.data?.name || productData?.details?.name || "Анализ завершен"}</h2>
+                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.name || (productData?.nm_id ? `Товар ${productData.nm_id}` : "Анализ завершен")}</h2>
                     <div className="flex items-center gap-2 mt-3 text-base text-muted-foreground">
                       <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating || "5.0"}</span>
                       <span>•</span>
