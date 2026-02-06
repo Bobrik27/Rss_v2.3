@@ -298,21 +298,39 @@ const WBAuditWidget = () => {
                   break;
                 case 'TEASER_READY':
                   setProgress(85);
-                  // Data mapping fix: check multiple possible fields for product data
-                  const teaserProductData = data.productData || data.data || data;
-                  console.log("DEBUG: Teaser product data:", teaserProductData);
-                  if (teaserProductData) setProductData(teaserProductData);
+                  // МАППИНГ: Берем данные из нашего ключа wb_results или teaser_data
+                  const teaserData = data.wb_results || data.teaser_data;
+                  if (teaserData) {
+                    // Превращаем структуру паспорта в структуру, которую понимает виджет
+                    setProductData({
+                      imt_name: teaserData.meta?.product_name,
+                      rating: teaserData.meta?.rating,
+                      reviews_count: teaserData.meta?.reviews_count,
+                      image_url: teaserData.meta?.image_url,
+                      teaser: {
+                        error_count: teaserData.audit_summary?.critical_error_count,
+                        top_issues: teaserData.audit_summary?.findings
+                      }
+                    });
+                  }
                   break;
                 case 'DONE':
                   setProgress(100);
-                  // Data mapping fix: check multiple possible fields for product data
-                  const doneProductData = data.productData || data.data || data;
-                  console.log("DEBUG: Done product data:", doneProductData);
-                  if (doneProductData) setProductData(doneProductData);
-                  // Wait 1 second before showing result view
-                  setTimeout(() => {
-                    if (phase === 'DONE') setView('audit');
-                  }, 1000);
+                  const finalData = data.wb_results || data.teaser_data;
+                  if (finalData) {
+                    setProductData({
+                      imt_name: finalData.meta?.product_name,
+                      rating: finalData.meta?.rating,
+                      reviews_count: finalData.meta?.reviews_count,
+                      image_url: finalData.meta?.image_url,
+                      teaser: {
+                        error_count: finalData.audit_summary?.critical_error_count,
+                        top_issues: finalData.audit_summary?.findings
+                      }
+                    });
+                  }
+                  // Переключаем вид через секунду
+                  setTimeout(() => setView('audit'), 1000);
                   break;
                 case 'PAID':
                   // Payment successful, prepare for PDF
