@@ -298,38 +298,47 @@ const WBAuditWidget = () => {
                   break;
                 case 'TEASER_READY':
                   setProgress(85);
-                  // МАППИНГ: Берем данные из нашего ключа wb_results или teaser_data
-                  const teaserData = data.wb_results || data.teaser_data;
-                  if (teaserData) {
-                    // Превращаем структуру паспорта в структуру, которую понимает виджет
+                  // DYNAMIC MAPPING: Fetch data specifically from the ui_bridge module
+                  const uiBridgeData = data.ui_bridge || data.wb_results || data.teaser_data;
+                  if (uiBridgeData) {
+                    // Map fields according to the FIELD MAPPING TABLE
                     setProductData({
-                      imt_name: teaserData.meta?.product_name,
-                      rating: teaserData.meta?.rating,
-                      reviews_count: teaserData.meta?.reviews_count,
-                      image_url: teaserData.meta?.image_url,
+                      imt_name: uiBridgeData.product_title || uiBridgeData.meta?.product_name,
+                      rating: uiBridgeData.rating_stars || uiBridgeData.meta?.rating,
+                      reviews_count: uiBridgeData.review_count || uiBridgeData.meta?.reviews_count,
+                      image_url: uiBridgeData.image_url || uiBridgeData.meta?.image_url,
+                      price: uiBridgeData.price_current || uiBridgeData.meta?.price,
                       teaser: {
-                        error_count: teaserData.audit_summary?.critical_error_count,
-                        top_issues: teaserData.audit_summary?.findings
-                      }
+                        error_count: uiBridgeData.monthly_loss_rub || uiBridgeData.audit_summary?.critical_error_count,
+                        score: uiBridgeData.efficiency_index || uiBridgeData.audit_summary?.efficiency_score,
+                        top_issues: uiBridgeData.audit_summary?.findings || uiBridgeData.top_issues || []
+                      },
+                      magnets: uiBridgeData.magnets || [], // Pros
+                      leaks: uiBridgeData.leaks || [] // Cons
                     });
                   }
                   break;
                 case 'DONE':
                   setProgress(100);
-                  const finalData = data.wb_results || data.teaser_data;
-                  if (finalData) {
+                  // DYNAMIC MAPPING: Fetch data specifically from the ui_bridge module
+                  const doneUiBridgeData = data.ui_bridge || data.wb_results || data.teaser_data;
+                  if (doneUiBridgeData) {
                     setProductData({
-                      imt_name: finalData.meta?.product_name,
-                      rating: finalData.meta?.rating,
-                      reviews_count: finalData.meta?.reviews_count,
-                      image_url: finalData.meta?.image_url,
+                      imt_name: doneUiBridgeData.product_title || doneUiBridgeData.meta?.product_name,
+                      rating: doneUiBridgeData.rating_stars || doneUiBridgeData.meta?.rating,
+                      reviews_count: doneUiBridgeData.review_count || doneUiBridgeData.meta?.reviews_count,
+                      image_url: doneUiBridgeData.image_url || doneUiBridgeData.meta?.image_url,
+                      price: doneUiBridgeData.price_current || doneUiBridgeData.meta?.price,
                       teaser: {
-                        error_count: finalData.audit_summary?.critical_error_count,
-                        top_issues: finalData.audit_summary?.findings
-                      }
+                        error_count: doneUiBridgeData.monthly_loss_rub || doneUiBridgeData.audit_summary?.critical_error_count,
+                        score: doneUiBridgeData.efficiency_index || doneUiBridgeData.audit_summary?.efficiency_score,
+                        top_issues: doneUiBridgeData.audit_summary?.findings || doneUiBridgeData.top_issues || []
+                      },
+                      magnets: doneUiBridgeData.magnets || [], // Pros
+                      leaks: doneUiBridgeData.leaks || [] // Cons
                     });
                   }
-                  // Переключаем вид через секунду
+                  // Switch view after a second
                   setTimeout(() => setView('audit'), 1000);
                   break;
                 case 'PAID':
@@ -605,7 +614,7 @@ const WBAuditWidget = () => {
                 <div className="bg-card border border-border rounded-3xl p-8 flex gap-8 items-center shadow-lg">
                   <div className="w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
                      <img
-                        src={productData?.media || productData?.image || productData?.image_url || productData?.data?.media || productData?.data?.image || productData?.details?.image || (productData?.options && productData?.options[0]?.image) || (productData?.options && productData?.options[0]?.photo_url) || "https://placehold.co/300x300?text=No+Image"}
+                        src={productData?.image_url || productData?.media || productData?.image || productData?.data?.media || productData?.data?.image || productData?.details?.image || (productData?.options && productData?.options[0]?.image) || (productData?.options && productData?.options[0]?.photo_url) || "https://placehold.co/300x300?text=No+Image"}
                         alt="Product"
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -616,19 +625,25 @@ const WBAuditWidget = () => {
                   </div>
                   <div>
                     <div className="text-[10px] font-bold text-[#ff6d5a] tracking-widest uppercase mb-2">AUDIT COMPLETE</div>
-                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.name || `Товар ${productData?.nm_id || productData?.sku || '[SKU]'}`}</h2>
+                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.product_title || productData?.name || `Товар ${productData?.nm_id || productData?.sku || '[SKU]'}`}</h2>
                     <div className="flex items-center gap-2 mt-3 text-base text-muted-foreground">
-                      <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating || "5.0"}</span>
+                      <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating || productData?.rating_stars || "5.0"}</span>
                       <span>•</span>
-                      <span>{productData?.reviews_count || productData?.feedback_count || "0"} отзывов</span>
+                      <span>{productData?.reviews_count || productData?.review_count || productData?.feedback_count || "0"} отзывов</span>
                     </div>
+                    {/* Display price if available */}
+                    {productData?.price && (
+                      <div className="mt-2 text-lg font-bold text-primary">
+                        {productData.price} ₽
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Alert */}
                 <div className="bg-[#ff6d5a]/10 border border-[#ff6d5a]/20 text-[#ff6d5a] p-6 rounded-xl text-center font-bold text-lg uppercase tracking-wider">
                   {(productData && productData.teaser && productData.teaser.error_count && productData.teaser.error_count > 0)
-                    ? `ОБНАРУЖЕНО ${productData.teaser.error_count || 0} КРИТИЧЕСКИХ ОШИБОК`
+                    ? `ОБНАРУЖЕНО ${productData.teaser.error_count || productData.monthly_loss_rub || 0} КРИТИЧЕСКИХ ОШИБОК`
                     : 'АНАЛИЗ ЗАВЕРШЕН, КРИТИЧЕСКИХ ОШИБОК НЕ НАЙДЕНО'}
                 </div>
 
