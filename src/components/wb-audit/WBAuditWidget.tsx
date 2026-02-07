@@ -396,6 +396,14 @@ const WBAuditWidget = () => {
 
             // Debug log to verify what data is being received
             console.log("DEBUG: Status API response data:", data);
+            // Log raw ui_bridge for audit
+            if (data.ui_bridge) {
+              console.log("DEBUG: ui_bridge object:", data.ui_bridge);
+              console.log("DEBUG: ui_bridge keys:", Object.keys(data.ui_bridge));
+            } else {
+              console.log("DEBUG: ui_bridge is missing in response");
+              console.log("DEBUG: Available keys in data:", Object.keys(data));
+            }
 
             // Only update if phase has changed
             if (data.phase !== phase) {
