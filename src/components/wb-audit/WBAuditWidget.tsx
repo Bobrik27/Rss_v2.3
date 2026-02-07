@@ -909,141 +909,42 @@ const WBAuditWidget = () => {
                     : "АНАЛИЗ ЗАВЕРШЕН, КРИТИЧЕСКИХ ОШИБОК НЕ НАЙДЕНО"}
                 </div>
 
-                {/* Teaser List */}
-                <div className="bg-card border border-border rounded-3xl overflow-hidden">
-                  <div className="divide-y divide-border">
-                    {productData?.teaser?.top_issues
-                      ?.slice(0, 2)
-                      .map((issue: any, i: number) => (
-                        <div key={i} className="p-6 flex gap-4">
-                          <div className="mt-1 text-green-500">
-                            <CheckCircle2 size={20} />
-                          </div>
-                          <div>
-                            <div className="font-bold text-foreground">
-                              {typeof issue === "string"
-                                ? issue
-                                : issue.title ||
-                                  issue.problem ||
-                                  issue.issue ||
-                                  `Проблема ${i + 1}`}
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {typeof issue === "object"
-                                ? issue.description ||
-                                  issue.details ||
-                                  issue.summary ||
-                                  ""
-                                : ""}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-
-                    {/* Blurred Items (Locked Content) - Display real data from API if available */}
-                    <div className="relative">
-                      <div className="backdrop-blur-md select-none opacity-50">
-                        {productData?.teaser?.top_issues
-                          ?.slice(2)
-                          .map((issue: any, i: number) => {
-                            const idx = i + 2; // Start from index 2
-                            return (
-                              <div key={idx} className="p-6 flex gap-4">
-                                <div className="mt-1 text-[#ff6d5a]">
-                                  <AlertTriangle size={20} />
-                                </div>
-                                <div>
-                                  <div className="font-bold text-foreground">
-                                    {typeof issue === "string"
-                                      ? issue
-                                      : issue.title ||
-                                        issue.problem ||
-                                        issue.issue ||
-                                        `Проблема ${idx}`}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {typeof issue === "object"
-                                      ? issue.description ||
-                                        issue.details ||
-                                        issue.summary ||
-                                        ""
-                                      : ""}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        {/* Fallback static content in case API doesn't return enough issues */}
-                        {(!productData?.teaser?.top_issues ||
-                          productData?.teaser?.top_issues.length <= 2) && (
-                          <>
-                            <div className="p-6 flex gap-4">
-                              <div className="mt-1 text-[#ff6d5a]">
-                                <AlertTriangle size={20} />
-                              </div>
-                              <div>
-                                <div className="font-bold text-foreground">
-                                  Визуальный контент (CTR)
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Конверсия снижена из-за низкой контрастности
-                                  фона.
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="p-6 flex gap-4">
-                              <div className="mt-1 text-[#ff6d5a]">
-                                <AlertTriangle size={20} />
-                              </div>
-                              <div>
-                                <div className="font-bold text-foreground">
-                                  SEO Оптимизация
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Отсутствуют 2 высокочастотных ключа.
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="p-6 flex gap-4">
-                              <div className="mt-1 text-[#ff6d5a]">
-                                <AlertTriangle size={20} />
-                              </div>
-                              <div>
-                                <div className="font-bold text-foreground">
-                                  Целевая аудитория
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Не учтены особенности поведения покупателей.
-                                </p>
-                              </div>
-                            </div>
-                          </>
-                        )}
+                {/* Magnets vs Leaks - Two Columns */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Magnets Column */}
+                  <div className="bg-card border border-border rounded-3xl p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <Zap className="w-5 h-5 text-green-500" />
                       </div>
-
-                      {/* Overlay Card */}
-                      <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm">
-                        <div className="text-center p-8">
-                          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Lock size={32} className="text-primary" />
-                          </div>
-                          <h3 className="text-xl font-bold mb-2">
-                            Отчет заблокирован
-                          </h3>
-                          <p className="text-muted-foreground mb-6">
-                            Полный анализ доступен после оплаты
-                          </p>
-                          <button
-                            onClick={() => setIsEmailModalOpen(true)}
-                            className="bg-primary text-primary-foreground py-3 px-6 rounded-xl hover:opacity-90 transition-opacity font-bold"
-                          >
-                            Получить доступ
-                          </button>
-                        </div>
-                      </div>
+                      <h3 className="text-xl font-bold">Магниты</h3>
                     </div>
+                    <ul className="space-y-4">
+                      {productData?.magnets?.map((magnet, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <div className="mt-1 w-2 h-2 rounded-full bg-green-500" />
+                          <span className="text-sm">{magnet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Leaks Column */}
+                  <div className="bg-card border border-border rounded-3xl p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                        <AlertTriangle className="w-5 h-5 text-red-500" />
+                      </div>
+                      <h3 className="text-xl font-bold">Утечки</h3>
+                    </div>
+                    <ul className="space-y-4">
+                      {productData?.leaks?.map((leak, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <div className="mt-1 w-2 h-2 rounded-full bg-red-500" />
+                          <span className="text-sm">{leak}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
 
