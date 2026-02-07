@@ -1,14 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  BarChart3, Globe, Rocket, Loader2, CheckCircle2, 
-  Lock, AlertTriangle, ShoppingCart, Zap, XCircle, Info, Database, BrainCircuit, Search
-} from 'lucide-react';
-import { API_CONFIG } from '../../config/api';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  BarChart3,
+  Globe,
+  Rocket,
+  Loader2,
+  CheckCircle2,
+  Lock,
+  AlertTriangle,
+  ShoppingCart,
+  Zap,
+  XCircle,
+  Info,
+  Database,
+  BrainCircuit,
+  Search,
+} from "lucide-react";
+import { API_CONFIG } from "../../config/api";
 
 // --- TYPES ---
-type Phase = 
-  'INIT' | 'PARSING' | 'TEASER_READY' | 'ANALYZING' | 'DONE' | 
-  'WAITING_PAYMENT' | 'PAID' | 'PDF_GENERATING' | 'PDF_READY' | 'ERROR';
+type Phase =
+  | "INIT"
+  | "PARSING"
+  | "TEASER_READY"
+  | "ANALYZING"
+  | "DONE"
+  | "WAITING_PAYMENT"
+  | "PAID"
+  | "PDF_GENERATING"
+  | "PDF_READY"
+  | "ERROR";
 
 interface ProductData {
   name?: string;
@@ -21,6 +41,16 @@ interface ProductData {
   rating?: number;
   reviews_count?: number;
   feedback_count?: number;
+  // Новые поля из ui_bridge
+  product_title?: string;
+  price_current?: number;
+  rating_stars?: number;
+  review_count?: number;
+  monthly_loss_rub?: string;
+  magnets?: string[];
+  leaks?: string[];
+  // Старые поля для обратной совместимости
+  price?: number;
   teaser?: {
     error_count?: number;
     score?: number;
@@ -51,20 +81,43 @@ interface ApiResponse {
 }
 
 // --- UI COMPONENTS ---
-const Toast = ({ message, type, onClose }: { message: string, type: 'error' | 'info', onClose: () => void }) => (
-  <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl animate-in slide-in-from-right-10 duration-300 border ${
-    type === 'error' ? 'bg-red-950/90 border-red-800 text-red-100' : 'bg-card border-border text-foreground'
-  }`}>
-    {type === 'error' ? <XCircle size={20} /> : <Info size={20} className="text-primary" />}
+const Toast = ({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: "error" | "info";
+  onClose: () => void;
+}) => (
+  <div
+    className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl animate-in slide-in-from-right-10 duration-300 border ${
+      type === "error"
+        ? "bg-red-950/90 border-red-800 text-red-100"
+        : "bg-card border-border text-foreground"
+    }`}
+  >
+    {type === "error" ? (
+      <XCircle size={20} />
+    ) : (
+      <Info size={20} className="text-primary" />
+    )}
     <span className="text-sm font-medium">{message}</span>
-    <button onClick={onClose} className="ml-4 opacity-50 hover:opacity-100">✕</button>
+    <button onClick={onClose} className="ml-4 opacity-50 hover:opacity-100">
+      ✕
+    </button>
   </div>
 );
 
-const Modal = ({ isOpen, onClose, title, children }: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  title: string; 
+const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
   children: React.ReactNode;
 }) => {
   if (!isOpen) return null;
@@ -74,7 +127,10 @@ const Modal = ({ isOpen, onClose, title, children }: {
       <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-foreground">{title}</h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground"
+          >
             ✕
           </button>
         </div>
@@ -85,14 +141,17 @@ const Modal = ({ isOpen, onClose, title, children }: {
 };
 
 const WBAuditWidget = () => {
-  const [view, setView] = useState<'grid' | 'audit'>('grid');
-  const [phase, setPhase] = useState<Phase>('INIT');
-  const [url, setUrl] = useState('');
+  const [view, setView] = useState<"grid" | "audit">("grid");
+  const [phase, setPhase] = useState<Phase>("INIT");
+  const [url, setUrl] = useState("");
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
-  const [toast, setToast] = useState<{message: string, type: 'error'|'info'} | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "error" | "info";
+  } | null>(null);
   const [productData, setProductData] = useState<ProductData | null>(null);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
@@ -106,32 +165,69 @@ const WBAuditWidget = () => {
     "[RISK] Calculating budget leakage...",
     "[REPORT] Finalizing audit data...",
     "[AI] Agents are formulating growth hypothesis...",
-    "[SUCCESS] Audit complete. PDF ready for download."
+    "[SUCCESS] Audit complete. PDF ready for download.",
   ];
 
-  const showToast = (message: string, type: 'error' | 'info' = 'info') => {
+  const showToast = (message: string, type: "error" | "info" = "info") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
   // Get or generate guest ID
   const getGuestId = (): string => {
-    const stored = localStorage.getItem('guest_id');
+    const stored = localStorage.getItem("guest_id");
     if (stored) return stored;
-    
-    const newId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('guest_id', newId);
+
+    const newId =
+      "guest_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem("guest_id", newId);
     return newId;
   };
 
   // Modules Configuration (Aligned with Competencies Style)
   const modules = [
-    { id: 'marketing', title: 'МАРКЕТИНГОВЫЙ АНАЛИЗ', status: 'ACTIVE', desc: 'Глубокий аудит карточек товара Wildberries.', icon: <BarChart3 className="w-5 h-5" /> },
-    { id: 'agents', title: 'Автономные агенты', status: 'LOCKED', desc: 'Цифровые сотрудники на базе n8n и Make.', icon: <Zap className="w-5 h-5" /> },
-    { id: 'vibe', title: 'Vibe-coding', status: 'LOCKED', desc: 'Создание прототипов через прямой диалог с кодом.', icon: <Rocket className="w-5 h-5" /> },
-    { id: 'advice', title: 'Совет AI', status: 'LOCKED', desc: 'Мультимодальный консилиум ИИ для принятия реший.', icon: <Globe className="w-5 h-5" /> },
-    { id: 'db', title: 'Базы Данных', status: 'LOCKED', desc: 'Проектирование архитектуры High-Load систем.', icon: <Database className="w-5 h-5" /> },
-    { id: 'neuro', title: 'Нейросети', status: 'LOCKED', desc: 'Обучение локальных LLM на ваших данных.', icon: <BrainCircuit className="w-5 h-5" /> },
+    {
+      id: "marketing",
+      title: "МАРКЕТИНГОВЫЙ АНАЛИЗ",
+      status: "ACTIVE",
+      desc: "Глубокий аудит карточек товара Wildberries.",
+      icon: <BarChart3 className="w-5 h-5" />,
+    },
+    {
+      id: "agents",
+      title: "Автономные агенты",
+      status: "LOCKED",
+      desc: "Цифровые сотрудники на базе n8n и Make.",
+      icon: <Zap className="w-5 h-5" />,
+    },
+    {
+      id: "vibe",
+      title: "Vibe-coding",
+      status: "LOCKED",
+      desc: "Создание прототипов через прямой диалог с кодом.",
+      icon: <Rocket className="w-5 h-5" />,
+    },
+    {
+      id: "advice",
+      title: "Совет AI",
+      status: "LOCKED",
+      desc: "Мультимодальный консилиум ИИ для принятия реший.",
+      icon: <Globe className="w-5 h-5" />,
+    },
+    {
+      id: "db",
+      title: "Базы Данных",
+      status: "LOCKED",
+      desc: "Проектирование архитектуры High-Load систем.",
+      icon: <Database className="w-5 h-5" />,
+    },
+    {
+      id: "neuro",
+      title: "Нейросети",
+      status: "LOCKED",
+      desc: "Обучение локальных LLM на ваших данных.",
+      icon: <BrainCircuit className="w-5 h-5" />,
+    },
   ];
 
   const handleStartAnalysis = async () => {
@@ -143,7 +239,7 @@ const WBAuditWidget = () => {
     }
 
     // 2. Reset states
-    setPhase('INIT');
+    setPhase("INIT");
     setProgress(0);
     setLogs([]);
     setProductData(null);
@@ -154,20 +250,24 @@ const WBAuditWidget = () => {
       // Extract SKU from URL for the parse endpoint
       const skuMatch = url.match(/catalog\/(\d+)/);
       const sku = skuMatch ? skuMatch[1] : null;
-      
+
       if (!sku) {
         showToast("Invalid Wildberries URL - SKU not found", "error");
         return;
       }
-      
-      const parseResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.parse, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })  // Send full URL to prevent match() error in n8n
-      });
 
-      if (!parseResponse.ok) throw new Error(`Parse API error: ${parseResponse.status}`);
-      
+      const parseResponse = await fetch(
+        API_CONFIG.baseUrl + API_CONFIG.endpoints.parse,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }), // Send full URL to prevent match() error in n8n
+        },
+      );
+
+      if (!parseResponse.ok)
+        throw new Error(`Parse API error: ${parseResponse.status}`);
+
       const text = await parseResponse.text();
       if (!text) {
         console.error("Empty response from parse API");
@@ -175,7 +275,7 @@ const WBAuditWidget = () => {
       } else {
         try {
           const parseData = JSON.parse(text);
-          
+
           // 4. Update product data immediately
           if (parseData) {
             setProductData(parseData);
@@ -188,22 +288,28 @@ const WBAuditWidget = () => {
 
       // 5. Call trigger endpoint
       // Extract email from user input or use a default value
-      const userEmail = email || 'anonymous@user.com';
-      
+      const userEmail = email || "anonymous@user.com";
+
       // Log the request body to verify email field is included
       const requestBody = {
-        url: url,  // Changed from product_url to match n8n expectation
+        url: url, // Changed from product_url to match n8n expectation
         email: userEmail, // Added missing email parameter
-        competitors: []  // Add empty competitors array to match backend expectation
+        competitors: [], // Add empty competitors array to match backend expectation
       };
-      
-      console.log("DEBUG: Sending request body to trigger endpoint:", requestBody);
-      
-      const triggerResponse = await fetch(API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
+
+      console.log(
+        "DEBUG: Sending request body to trigger endpoint:",
+        requestBody,
+      );
+
+      const triggerResponse = await fetch(
+        API_CONFIG.baseUrl + API_CONFIG.endpoints.trigger,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+        },
+      );
 
       if (!triggerResponse.ok) {
         console.error(`Trigger API error: ${triggerResponse.status}`);
@@ -225,7 +331,7 @@ const WBAuditWidget = () => {
       }
 
       // 6. Start polling for status
-      setPhase('PARSING');
+      setPhase("PARSING");
       // Use the previously extracted SKU to match backend expectations
       const skuForProject = skuMatch ? skuMatch[1] : Date.now().toString();
       const guestId = getGuestId();
@@ -249,29 +355,34 @@ const WBAuditWidget = () => {
             console.error("Empty response from API");
             // Instead of returning, create a default response to maintain polling
             const defaultData: ApiResponse = {
-              phase: 'ERROR',
-              status: 'error',
-              message: 'Backend unreachable or project not found'
+              phase: "ERROR",
+              status: "error",
+              message: "Backend unreachable or project not found",
             };
-            
+
             // Only update if phase has changed
             if (defaultData.phase !== phase) {
               setPhase(defaultData.phase);
-              
-              if (defaultData.phase === 'ERROR') {
+
+              if (defaultData.phase === "ERROR") {
                 clearInterval(pollInterval);
                 // Show a more direct error message
                 showToast("Backend is currently unreachable", "error");
               }
             }
-            
+
             // Handle messages and logs
             if (defaultData.message) {
-              setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${defaultData.message}`]);
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString([], { hour12: false, minute: "2-digit", second: "2-digit" })}] ${defaultData.message}`,
+              ]);
             }
-            
+
             // Stop polling if phase is terminal
-            if (['DONE', 'PAID', 'PDF_READY', 'ERROR'].includes(defaultData.phase)) {
+            if (
+              ["DONE", "PAID", "PDF_READY", "ERROR"].includes(defaultData.phase)
+            ) {
               clearInterval(pollInterval);
             }
             return;
@@ -279,10 +390,10 @@ const WBAuditWidget = () => {
 
           console.log("DEBUG: Response Status:", statusResponse.status);
           console.log("DEBUG: Raw Text:", text);
-          
+
           try {
             const data: ApiResponse = JSON.parse(text);
-            
+
             // Debug log to verify what data is being received
             console.log("DEBUG: Status API response data:", data);
 
@@ -291,63 +402,125 @@ const WBAuditWidget = () => {
               setPhase(data.phase);
 
               // Handle phase-specific logic
-              switch(data.phase) {
-                case 'PARSING':
-                case 'ANALYZING':
-                  setProgress(prev => Math.min(70, prev + 5));
+              switch (data.phase) {
+                case "PARSING":
+                case "ANALYZING":
+                  setProgress((prev) => Math.min(70, prev + 5));
                   break;
-                case 'TEASER_READY':
+                case "TEASER_READY":
                   setProgress(85);
                   // DYNAMIC MAPPING: Fetch data specifically from the ui_bridge module
-                  const uiBridgeData = data.ui_bridge || data.wb_results || data.teaser_data;
-                  if (uiBridgeData) {
+                  const uiBridgeDataTeaser =
+                    data.ui_bridge || data.wb_results || data.teaser_data;
+                  if (uiBridgeDataTeaser) {
                     // Map fields according to the FIELD MAPPING TABLE
                     setProductData({
-                      imt_name: uiBridgeData.product_title || uiBridgeData.meta?.product_name,
-                      rating: uiBridgeData.rating_stars || uiBridgeData.meta?.rating,
-                      reviews_count: uiBridgeData.review_count || uiBridgeData.meta?.reviews_count,
-                      image_url: uiBridgeData.image_url || uiBridgeData.meta?.image_url,
-                      price: uiBridgeData.price_current || uiBridgeData.meta?.price,
+                      // Основные поля
+                      product_title: uiBridgeDataTeaser.product_title,
+                      imt_name: uiBridgeDataTeaser.product_title,
+                      image_url: uiBridgeDataTeaser.image_url,
+                      price_current: uiBridgeDataTeaser.price_current,
+                      price: uiBridgeDataTeaser.price_current,
+                      rating_stars: uiBridgeDataTeaser.rating_stars,
+                      rating: uiBridgeDataTeaser.rating_stars,
+                      review_count: uiBridgeDataTeaser.review_count,
+                      reviews_count: uiBridgeDataTeaser.review_count,
+                      monthly_loss_rub: uiBridgeDataTeaser.monthly_loss_rub,
+                      magnets: uiBridgeDataTeaser.magnets || [],
+                      leaks: uiBridgeDataTeaser.leaks || [],
+                      // Совместимость со старым форматом
                       teaser: {
-                        error_count: uiBridgeData.monthly_loss_rub || uiBridgeData.audit_summary?.critical_error_count,
-                        score: uiBridgeData.efficiency_index || uiBridgeData.audit_summary?.efficiency_score,
-                        top_issues: uiBridgeData.audit_summary?.findings || uiBridgeData.top_issues || []
+                        error_count: uiBridgeDataTeaser.monthly_loss_rub ? 1 : 0, // Для отображения в UI
+                        score: uiBridgeDataTeaser.efficiency_index,
+                        top_issues: uiBridgeDataTeaser.leaks || uiBridgeDataTeaser.top_issues || [],
                       },
-                      magnets: uiBridgeData.magnets || [], // Pros
-                      leaks: uiBridgeData.leaks || [] // Cons
                     });
                   }
                   break;
-                case 'DONE':
+                case "DONE":
                   setProgress(100);
-                  // DYNAMIC MAPPING: Fetch data specifically from the ui_bridge module
-                  const doneUiBridgeData = data.ui_bridge || data.wb_results || data.teaser_data;
-                  if (doneUiBridgeData) {
+                  // FIX MAPPING: Get data specifically from ui_bridge with exact field names
+                  const uiBridgeDataDone = data.ui_bridge;
+                  
+                  if (uiBridgeDataDone) {
                     setProductData({
-                      imt_name: doneUiBridgeData.product_title || doneUiBridgeData.meta?.product_name,
-                      rating: doneUiBridgeData.rating_stars || doneUiBridgeData.meta?.rating,
-                      reviews_count: doneUiBridgeData.review_count || doneUiBridgeData.meta?.reviews_count,
-                      image_url: doneUiBridgeData.image_url || doneUiBridgeData.meta?.image_url,
-                      price: doneUiBridgeData.price_current || doneUiBridgeData.meta?.price,
+                      // Новые поля из ui_bridge
+                      product_title: uiBridgeDataDone.product_title,
+                      imt_name: uiBridgeDataDone.product_title || `Товар ${data.nm_id || '[SKU]'}`,
+                      image_url: uiBridgeDataDone.image_url,
+                      price_current: uiBridgeDataDone.price_current,
+                      price: uiBridgeDataDone.price_current,
+                      rating_stars: uiBridgeDataDone.rating_stars,
+                      rating: uiBridgeDataDone.rating_stars,
+                      review_count: uiBridgeDataDone.review_count,
+                      reviews_count: uiBridgeDataDone.review_count,
+                      monthly_loss_rub: uiBridgeDataDone.monthly_loss_rub,
+                      magnets: uiBridgeDataDone.magnets || [],
+                      leaks: uiBridgeDataDone.leaks || [],
+                      // Совместимость со старым форматом
                       teaser: {
-                        error_count: doneUiBridgeData.monthly_loss_rub || doneUiBridgeData.audit_summary?.critical_error_count,
-                        score: doneUiBridgeData.efficiency_index || doneUiBridgeData.audit_summary?.efficiency_score,
-                        top_issues: doneUiBridgeData.audit_summary?.findings || doneUiBridgeData.top_issues || []
+                        error_count: uiBridgeDataDone.monthly_loss_rub ? 1 : 0,
+                        top_issues: uiBridgeDataDone.leaks || uiBridgeDataDone.top_issues || []
                       },
-                      magnets: doneUiBridgeData.magnets || [], // Pros
-                      leaks: doneUiBridgeData.leaks || [] // Cons
                     });
+                  } else {
+                    // Fallback to other data sources if ui_bridge is not available
+                    const fallbackData = data.wb_audit_results || data;
+                    if (fallbackData) {
+                      setProductData({
+                        imt_name:
+                          fallbackData.product_title ||
+                          fallbackData.meta?.product_name ||
+                          `Товар ${fallbackData.nm_id || '[SKU]'}`,
+                        image_url:
+                          fallbackData.image_url ||
+                          fallbackData.meta?.image_url,
+                        price_current:
+                          fallbackData.price_current ||
+                          fallbackData.meta?.price,
+                        price:
+                          fallbackData.price_current ||
+                          fallbackData.meta?.price,
+                        rating_stars:
+                          fallbackData.rating_stars ||
+                          fallbackData.meta?.rating,
+                        rating:
+                          fallbackData.rating_stars ||
+                          fallbackData.meta?.rating,
+                        review_count:
+                          fallbackData.review_count ||
+                          fallbackData.meta?.reviews_count,
+                        reviews_count:
+                          fallbackData.review_count ||
+                          fallbackData.meta?.reviews_count,
+                        monthly_loss_rub: fallbackData.monthly_loss_rub,
+                        magnets: fallbackData.magnets || fallbackData.pros || [],
+                        leaks: fallbackData.leaks || fallbackData.cons || [],
+                        teaser: {
+                          error_count:
+                            fallbackData.monthly_loss_rub ||
+                            fallbackData.audit_summary?.critical_error_count,
+                          top_issues:
+                            fallbackData.leaks ||
+                            fallbackData.audit_summary?.findings ||
+                            fallbackData.top_issues || []
+                        },
+                      });
+                    }
                   }
-                  // Switch view after a second
-                  setTimeout(() => setView('audit'), 1000);
+
+                  // Даем небольшую задержку для красоты и переключаем вид
+                  setTimeout(() => {
+                    setView("audit");
+                  }, 500);
                   break;
-                case 'PAID':
+                case "PAID":
                   // Payment successful, prepare for PDF
                   break;
-                case 'PDF_READY':
+                case "PDF_READY":
                   setDownloadUrl(data.pdf_url || null);
                   break;
-                case 'ERROR':
+                case "ERROR":
                   clearInterval(pollInterval);
                   // Set phase to ERROR but don't show popup notification to reduce noise
                   break;
@@ -357,21 +530,31 @@ const WBAuditWidget = () => {
             // Handle messages and logs - Priority to real API messages
             if (data.message) {
               // Add real API message to logs and update last API call time
-              setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${data.message}`]);
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString([], { hour12: false, minute: "2-digit", second: "2-digit" })}] ${data.message}`,
+              ]);
               lastApiCallTimeRef.current = Date.now();
             } else {
               // Only add fake log if no response from server for 5+ seconds
               const now = Date.now();
-              if (logs.length === 0 || (now - lastApiCallTimeRef.current) > 5000) {
-                const randomLog = FAKE_LOGS[Math.floor(Math.random() * FAKE_LOGS.length)];
-                setLogs(prev => [...prev, `[${new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second: '2-digit' })}] ${randomLog}`]);
+              if (
+                logs.length === 0 ||
+                now - lastApiCallTimeRef.current > 5000
+              ) {
+                const randomLog =
+                  FAKE_LOGS[Math.floor(Math.random() * FAKE_LOGS.length)];
+                setLogs((prev) => [
+                  ...prev,
+                  `[${new Date().toLocaleTimeString([], { hour12: false, minute: "2-digit", second: "2-digit" })}] ${randomLog}`,
+                ]);
                 // Still update the last API call time to prevent continuous fake logs
                 lastApiCallTimeRef.current = now;
               }
             }
 
             // Stop polling if phase is terminal
-            if (['DONE', 'PAID', 'PDF_READY', 'ERROR'].includes(data.phase)) {
+            if (["DONE", "PAID", "PDF_READY", "ERROR"].includes(data.phase)) {
               clearInterval(pollInterval);
             }
           } catch (e) {
@@ -381,14 +564,13 @@ const WBAuditWidget = () => {
         } catch (error) {
           console.error("Polling error:", error);
           clearInterval(pollInterval);
-          setPhase('ERROR');
+          setPhase("ERROR");
           showToast("Ошибка соединения с сервером", "error");
         }
       }, 3000); // Poll every 3 seconds
-
     } catch (error: any) {
       console.error("Analysis error:", error);
-      setPhase('ERROR');
+      setPhase("ERROR");
       showToast(`Ошибка: ${error.message}`, "error");
     }
   };
@@ -400,11 +582,14 @@ const WBAuditWidget = () => {
     }
 
     try {
-      const response = await fetch(API_CONFIG.baseUrl + '/webhook/wb/save-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, projectId: `wb_${Date.now()}` })
-      });
+      const response = await fetch(
+        API_CONFIG.baseUrl + "/webhook/wb/save-lead",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, projectId: `wb_${Date.now()}` }),
+        },
+      );
 
       if (!response.ok) {
         console.error(`Save lead API error: ${response.status}`);
@@ -428,7 +613,7 @@ const WBAuditWidget = () => {
 
       setIsEmailModalOpen(false);
       // Show payment options
-      setPhase('WAITING_PAYMENT');
+      setPhase("WAITING_PAYMENT");
     } catch (error) {
       console.error("Error saving lead:", error);
       showToast("Ошибка при сохранении email", "error");
@@ -441,15 +626,16 @@ const WBAuditWidget = () => {
 
   return (
     <div className="w-full bg-card text-foreground font-sans min-h-[550px] flex flex-col">
-      
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-      <Modal 
-        isOpen={isEmailModalOpen} 
-        onClose={() => setIsEmailModalOpen(false)} 
+      <Modal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
         title="Получить отчет"
       >
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">Введите ваш email, чтобы получить доступ к отчету</p>
+          <p className="text-sm text-muted-foreground">
+            Введите ваш email, чтобы получить доступ к отчету
+          </p>
           <input
             type="email"
             value={email}
@@ -458,13 +644,13 @@ const WBAuditWidget = () => {
             className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
           />
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={handleEmailSubmit}
               className="flex-1 bg-primary text-primary-foreground py-2 rounded-lg hover:opacity-90 transition-opacity"
             >
               Продолжить
             </button>
-            <button 
+            <button
               onClick={() => setIsEmailModalOpen(false)}
               className="px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors"
             >
@@ -475,53 +661,70 @@ const WBAuditWidget = () => {
       </Modal>
 
       <div className="max-w-[1700px] mx-auto w-full p-4 md:p-8 lg:p-12">
-        
         {/* HEADER */}
         <div className="flex justify-between items-center mb-12 select-none">
           <div className="text-lg font-bold tracking-tight flex items-center gap-2">
             <div className="w-2 h-2 bg-[#ff6d5a] rounded-full animate-pulse" />
-            WB AGENT OS <span className="text-[10px] text-muted-foreground bg-background border border-border px-1.5 rounded ml-1">v4.0.1</span>
+            WB AGENT OS{" "}
+            <span className="text-[10px] text-muted-foreground bg-background border border-border px-1.5 rounded ml-1">
+              v4.0.1
+            </span>
           </div>
         </div>
 
         {/* VIEW 1: MODULES GRID */}
-        {view === 'grid' && (
+        {view === "grid" && (
           <div className="animate-in fade-in duration-500">
             <div className="mb-12 text-center md:text-left">
-              <h1 className="text-4xl md:text-6xl font-bold mb-4">Матрица решений</h1>
-              <p className="text-muted-foreground max-w-xl">Выберите инструмент для анализа.</p>
+              <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                Матрица решений
+              </h1>
+              <p className="text-muted-foreground max-w-xl">
+                Выберите инструмент для анализа.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {modules.map((m) => (
                 <div
                   key={m.id}
-                  onClick={() => m.status === 'ACTIVE' && setView('audit')}
+                  onClick={() => m.status === "ACTIVE" && setView("audit")}
                   className={`group relative p-8 rounded-2xl border transition-all duration-300 min-h-[220px] flex flex-col justify-between
-                    ${m.status === 'ACTIVE'
-                      ? 'bg-card border-border cursor-pointer hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5'
-                      : 'bg-card border-border/50 cursor-not-allowed opacity-60'
+                    ${
+                      m.status === "ACTIVE"
+                        ? "bg-card border-border cursor-pointer hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
+                        : "bg-card border-border/50 cursor-not-allowed opacity-60"
                     }`}
                 >
-                  {m.status === 'LOCKED' && (
+                  {m.status === "LOCKED" && (
                     <div className="absolute top-4 right-4 text-muted-foreground/50">
-                        <Lock size={16} />
+                      <Lock size={16} />
                     </div>
                   )}
-                  
+
                   <div>
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${m.status === 'ACTIVE' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${m.status === "ACTIVE" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+                    >
                       {m.icon}
                     </div>
-                    <h3 className="text-lg font-bold mb-2 uppercase tracking-wide">{m.title}</h3>
+                    <h3 className="text-lg font-bold mb-2 uppercase tracking-wide">
+                      {m.title}
+                    </h3>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {m.desc}
+                    </p>
                     {/* Status Indicator */}
                     <div className="flex items-center mt-3 gap-2">
-                      <div className={`w-2 h-2 rounded-full ${m.status === 'ACTIVE' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                      <div
+                        className={`w-2 h-2 rounded-full ${m.status === "ACTIVE" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+                      />
                       <span className="text-xs text-muted-foreground">
-                        {m.status === 'ACTIVE' ? 'System Online' : 'Offline / Maintenance'}
+                        {m.status === "ACTIVE"
+                          ? "System Online"
+                          : "Offline / Maintenance"}
                       </span>
                     </div>
                   </div>
@@ -532,37 +735,43 @@ const WBAuditWidget = () => {
         )}
 
         {/* VIEW 2: AUDIT INTERFACE */}
-        {view === 'audit' && (
+        {view === "audit" && (
           <div className="max-w-[1300px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-            
             {/* STATE: INPUT */}
-            {phase === 'INIT' && (
+            {phase === "INIT" && (
               <div className="bg-card border border-border p-8 md:p-12 rounded-3xl shadow-2xl">
                 <div className="text-center mb-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider mb-6">
-                        MARKETING ANALYSIS MODULE
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4">Сканер карточки товара</h2>
-                    <p className="text-muted-foreground">Вставьте ссылку, система сделает остальное.</p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider mb-6">
+                    MARKETING ANALYSIS MODULE
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                    Сканер карточки товара
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Вставьте ссылку, система сделает остальное.
+                  </p>
                 </div>
-                
+
                 <div className="space-y-6">
-                  <input 
-                    type="url" 
+                  <input
+                    type="url"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://www.wildberries.ru/catalog/..."
                     className="w-full h-20 bg-background border border-border rounded-xl px-6 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xl"
                   />
 
-                  <button 
+                  <button
                     onClick={handleStartAnalysis}
                     className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
                   >
                     ЗАПУСТИТЬ СКАНЕР <Rocket size={20} />
                   </button>
-                  
-                  <button onClick={() => setView('grid')} className="w-full text-xs font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest">
+
+                  <button
+                    onClick={() => setView("grid")}
+                    className="w-full text-xs font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest"
+                  >
                     ← Вернуться назад
                   </button>
                 </div>
@@ -570,7 +779,9 @@ const WBAuditWidget = () => {
             )}
 
             {/* STATE: PROCESSING (PARSING, ANALYZING, etc.) */}
-            {(phase === 'PARSING' || phase === 'ANALYZING' || phase === 'TEASER_READY') && (
+            {(phase === "PARSING" ||
+              phase === "ANALYZING" ||
+              phase === "TEASER_READY") && (
               <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-2xl">
                 <div className="p-6 border-b border-border bg-muted/20 flex justify-between items-center">
                   <div className="flex items-center gap-3 text-primary font-mono text-xs font-bold">
@@ -582,7 +793,7 @@ const WBAuditWidget = () => {
                 <div className="p-8 space-y-8">
                   {/* Progress Bar */}
                   <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-primary transition-all duration-700 ease-out"
                       style={{ width: `${progress}%` }}
                     />
@@ -592,9 +803,22 @@ const WBAuditWidget = () => {
                   <div className="bg-[#050505] rounded-xl p-6 font-mono text-sm border border-border/50 h-[500px] overflow-y-auto custom-scrollbar leading-relaxed">
                     <div className="flex flex-col gap-2">
                       {logs.map((log, i) => (
-                        <div key={i} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-200">
-                          <span className="text-muted-foreground/50">[{new Date().toLocaleTimeString([], { hour12: false, minute: '2-digit', second:'2-digit' })}]</span>
-                          <span className={`${log.includes('[ERROR]') ? 'text-red-500' : 'text-primary'}`}>
+                        <div
+                          key={i}
+                          className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-200"
+                        >
+                          <span className="text-muted-foreground/50">
+                            [
+                            {new Date().toLocaleTimeString([], {
+                              hour12: false,
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })}
+                            ]
+                          </span>
+                          <span
+                            className={`${log.includes("[ERROR]") ? "text-red-500" : "text-primary"}`}
+                          >
                             {log}
                           </span>
                         </div>
@@ -607,29 +831,59 @@ const WBAuditWidget = () => {
             )}
 
             {/* STATE: RESULT */}
-            {phase === 'DONE' && (
+            {phase === "DONE" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                
                 {/* Product Header */}
                 <div className="bg-card border border-border rounded-3xl p-8 flex gap-8 items-center shadow-lg">
                   <div className="w-32 h-32 bg-muted rounded-xl overflow-hidden shrink-0 border border-border">
-                     <img
-                        src={productData?.image_url || productData?.media || productData?.image || productData?.data?.media || productData?.data?.image || productData?.details?.image || (productData?.options && productData?.options[0]?.image) || (productData?.options && productData?.options[0]?.photo_url) || "https://placehold.co/300x300?text=No+Image"}
-                        alt="Product"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://placehold.co/300x300?text=No+Image";
-                        }}
-                     />
+                    <img
+                      src={
+                        productData?.image_url ||
+                        productData?.media ||
+                        productData?.image ||
+                        productData?.data?.media ||
+                        productData?.data?.image ||
+                        productData?.details?.image ||
+                        (productData?.options &&
+                          productData?.options[0]?.image) ||
+                        (productData?.options &&
+                          productData?.options[0]?.photo_url) ||
+                        "https://placehold.co/300x300?text=No+Image"
+                      }
+                      alt="Product"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src =
+                          "https://placehold.co/300x300?text=No+Image";
+                      }}
+                    />
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold text-[#ff6d5a] tracking-widest uppercase mb-2">AUDIT COMPLETE</div>
-                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">{productData?.imt_name || productData?.product_title || productData?.name || `Товар ${productData?.nm_id || productData?.sku || '[SKU]'}`}</h2>
+                    <div className="text-[10px] font-bold text-[#ff6d5a] tracking-widest uppercase mb-2">
+                      AUDIT COMPLETE
+                    </div>
+                    <h2 className="text-2xl font-bold leading-tight line-clamp-2">
+                      {productData?.imt_name ||
+                        productData?.product_title ||
+                        productData?.name ||
+                        `Товар ${productData?.nm_id || productData?.sku || "[SKU]"}`}
+                    </h2>
                     <div className="flex items-center gap-2 mt-3 text-base text-muted-foreground">
-                      <span className="text-yellow-500 font-bold text-lg">★ {productData?.rating || productData?.rating_stars || "5.0"}</span>
+                      <span className="text-yellow-500 font-bold text-lg">
+                        ★{" "}
+                        {productData?.rating ||
+                          productData?.rating_stars ||
+                          "5.0"}
+                      </span>
                       <span>•</span>
-                      <span>{productData?.reviews_count || productData?.review_count || productData?.feedback_count || "0"} отзывов</span>
+                      <span>
+                        {productData?.reviews_count ||
+                          productData?.review_count ||
+                          productData?.feedback_count ||
+                          "0"}{" "}
+                        отзывов
+                      </span>
                     </div>
                     {/* Display price if available */}
                     {productData?.price && (
@@ -642,78 +896,138 @@ const WBAuditWidget = () => {
 
                 {/* Alert */}
                 <div className="bg-[#ff6d5a]/10 border border-[#ff6d5a]/20 text-[#ff6d5a] p-6 rounded-xl text-center font-bold text-lg uppercase tracking-wider">
-                  {(productData && productData.teaser && productData.teaser.error_count && productData.teaser.error_count > 0)
-                    ? `ОБНАРУЖЕНО ${productData.teaser.error_count || productData.monthly_loss_rub || 0} КРИТИЧЕСКИХ ОШИБОК`
-                    : 'АНАЛИЗ ЗАВЕРШЕН, КРИТИЧЕСКИХ ОШИБОК НЕ НАЙДЕНО'}
+                  {productData?.monthly_loss_rub
+                    ? `ЕЖЕМЕСЯЧНЫЕ ПОТЕРИ: ${productData.monthly_loss_rub}`
+                    : "АНАЛИЗ ЗАВЕРШЕН, КРИТИЧЕСКИХ ОШИБОК НЕ НАЙДЕНО"}
                 </div>
 
                 {/* Teaser List */}
                 <div className="bg-card border border-border rounded-3xl overflow-hidden">
                   <div className="divide-y divide-border">
-                    {productData?.teaser?.top_issues?.slice(0, 2).map((issue: any, i: number) => (
-                      <div key={i} className="p-6 flex gap-4">
-                        <div className="mt-1 text-green-500"><CheckCircle2 size={20} /></div>
-                        <div>
-                          <div className="font-bold text-foreground">{typeof issue === 'string' ? issue : issue.title || issue.problem || issue.issue || `Проблема ${i+1}`}</div>
-                          <p className="text-sm text-muted-foreground mt-1">{typeof issue === 'object' ? issue.description || issue.details || issue.summary || '' : ''}</p>
+                    {productData?.teaser?.top_issues
+                      ?.slice(0, 2)
+                      .map((issue: any, i: number) => (
+                        <div key={i} className="p-6 flex gap-4">
+                          <div className="mt-1 text-green-500">
+                            <CheckCircle2 size={20} />
+                          </div>
+                          <div>
+                            <div className="font-bold text-foreground">
+                              {typeof issue === "string"
+                                ? issue
+                                : issue.title ||
+                                  issue.problem ||
+                                  issue.issue ||
+                                  `Проблема ${i + 1}`}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {typeof issue === "object"
+                                ? issue.description ||
+                                  issue.details ||
+                                  issue.summary ||
+                                  ""
+                                : ""}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    
+                      ))}
+
                     {/* Blurred Items (Locked Content) - Display real data from API if available */}
                     <div className="relative">
                       <div className="backdrop-blur-md select-none opacity-50">
-                        {productData?.teaser?.top_issues?.slice(2).map((issue: any, i: number) => {
-                          const idx = i + 2; // Start from index 2
-                          return (
-                            <div key={idx} className="p-6 flex gap-4">
-                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
-                              <div>
-                                <div className="font-bold text-foreground">{typeof issue === 'string' ? issue : issue.title || issue.problem || issue.issue || `Проблема ${idx}`}</div>
-                                <p className="text-sm text-muted-foreground mt-1">{typeof issue === 'object' ? issue.description || issue.details || issue.summary || '' : ''}</p>
+                        {productData?.teaser?.top_issues
+                          ?.slice(2)
+                          .map((issue: any, i: number) => {
+                            const idx = i + 2; // Start from index 2
+                            return (
+                              <div key={idx} className="p-6 flex gap-4">
+                                <div className="mt-1 text-[#ff6d5a]">
+                                  <AlertTriangle size={20} />
+                                </div>
+                                <div>
+                                  <div className="font-bold text-foreground">
+                                    {typeof issue === "string"
+                                      ? issue
+                                      : issue.title ||
+                                        issue.problem ||
+                                        issue.issue ||
+                                        `Проблема ${idx}`}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {typeof issue === "object"
+                                      ? issue.description ||
+                                        issue.details ||
+                                        issue.summary ||
+                                        ""
+                                      : ""}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
                         {/* Fallback static content in case API doesn't return enough issues */}
-                        {(!productData?.teaser?.top_issues || productData?.teaser?.top_issues.length <= 2) && (
+                        {(!productData?.teaser?.top_issues ||
+                          productData?.teaser?.top_issues.length <= 2) && (
                           <>
                             <div className="p-6 flex gap-4">
-                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                              <div className="mt-1 text-[#ff6d5a]">
+                                <AlertTriangle size={20} />
+                              </div>
                               <div>
-                                <div className="font-bold text-foreground">Визуальный контент (CTR)</div>
-                                <p className="text-sm text-muted-foreground mt-1">Конверсия снижена из-за низкой контрастности фона.</p>
+                                <div className="font-bold text-foreground">
+                                  Визуальный контент (CTR)
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Конверсия снижена из-за низкой контрастности
+                                  фона.
+                                </p>
                               </div>
                             </div>
-                            
+
                             <div className="p-6 flex gap-4">
-                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                              <div className="mt-1 text-[#ff6d5a]">
+                                <AlertTriangle size={20} />
+                              </div>
                               <div>
-                                <div className="font-bold text-foreground">SEO Оптимизация</div>
-                                <p className="text-sm text-muted-foreground mt-1">Отсутствуют 2 высокочастотных ключа.</p>
+                                <div className="font-bold text-foreground">
+                                  SEO Оптимизация
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Отсутствуют 2 высокочастотных ключа.
+                                </p>
                               </div>
                             </div>
-                            
+
                             <div className="p-6 flex gap-4">
-                              <div className="mt-1 text-[#ff6d5a]"><AlertTriangle size={20} /></div>
+                              <div className="mt-1 text-[#ff6d5a]">
+                                <AlertTriangle size={20} />
+                              </div>
                               <div>
-                                <div className="font-bold text-foreground">Целевая аудитория</div>
-                                <p className="text-sm text-muted-foreground mt-1">Не учтены особенности поведения покупателей.</p>
+                                <div className="font-bold text-foreground">
+                                  Целевая аудитория
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Не учтены особенности поведения покупателей.
+                                </p>
                               </div>
                             </div>
                           </>
                         )}
                       </div>
-                      
+
                       {/* Overlay Card */}
                       <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm">
                         <div className="text-center p-8">
                           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Lock size={32} className="text-primary" />
                           </div>
-                          <h3 className="text-xl font-bold mb-2">Отчет заблокирован</h3>
-                          <p className="text-muted-foreground mb-6">Полный анализ доступен после оплаты</p>
-                          <button 
+                          <h3 className="text-xl font-bold mb-2">
+                            Отчет заблокирован
+                          </h3>
+                          <p className="text-muted-foreground mb-6">
+                            Полный анализ доступен после оплаты
+                          </p>
+                          <button
                             onClick={() => setIsEmailModalOpen(true)}
                             className="bg-primary text-primary-foreground py-3 px-6 rounded-xl hover:opacity-90 transition-opacity font-bold"
                           >
@@ -729,14 +1043,25 @@ const WBAuditWidget = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Basic */}
                   <div className="bg-card border border-border p-8 rounded-3xl flex flex-col min-h-[300px]">
-                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">BASIC</div>
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                      BASIC
+                    </div>
                     <div className="text-3xl font-black mb-6">500 ₽</div>
                     <ul className="text-sm space-y-3 mb-8 text-muted-foreground flex-grow">
-                      <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • Список ошибок</li>
-                      <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • Рекомендации по SEO</li>
-                      <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span> • PDF Отчет</li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span>{" "}
+                        • Список ошибок
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span>{" "}
+                        • Рекомендации по SEO
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary/50"></span>{" "}
+                        • PDF Отчет
+                      </li>
                     </ul>
-                    <button 
+                    <button
                       onClick={() => setIsEmailModalOpen(true)}
                       className="w-full py-4 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-bold uppercase"
                     >
@@ -748,26 +1073,44 @@ const WBAuditWidget = () => {
                   <div className="bg-card border border-primary/30 p-8 rounded-3xl flex flex-col relative overflow-hidden group min-h-[300px]">
                     <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors" />
                     <div className="relative z-10 flex flex-col h-full">
-                        <div className="text-xs font-bold text-primary uppercase tracking-widest mb-3">PRO AGENT</div>
-                        <div className="text-3xl font-black mb-6">2 999 ₽</div>
-                        <ul className="text-sm space-y-3 mb-8 text-foreground font-medium flex-grow">
-                        <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • Стратегия роста</li>
-                        <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • SEO Тексты</li>
-                        <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • ТЗ для дизайнера</li>
-                        <li className="flex items-start gap-2"><span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span> • Индивидуальный подход</li>
-                        </ul>
-                        <button 
-                          onClick={() => setIsEmailModalOpen(true)}
-                          className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center gap-2"
-                        >
+                      <div className="text-xs font-bold text-primary uppercase tracking-widest mb-3">
+                        PRO AGENT
+                      </div>
+                      <div className="text-3xl font-black mb-6">2 999 ₽</div>
+                      <ul className="text-sm space-y-3 mb-8 text-foreground font-medium flex-grow">
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span>{" "}
+                          • Стратегия роста
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span>{" "}
+                          • SEO Тексты
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span>{" "}
+                          • ТЗ для дизайнера
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1 block w-1.5 h-1.5 rounded-full bg-primary"></span>{" "}
+                          • Индивидуальный подход
+                        </li>
+                      </ul>
+                      <button
+                        onClick={() => setIsEmailModalOpen(true)}
+                        className="w-full py-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-bold uppercase flex items-center justify-center gap-2"
+                      >
                         Скачать стратегию <Rocket size={16} />
-                        </button>
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => {setView('grid'); setPhase('INIT'); setUrl('');}}
+                <button
+                  onClick={() => {
+                    setView("grid");
+                    setPhase("INIT");
+                    setUrl("");
+                  }}
                   className="w-full py-4 text-xs font-bold text-muted-foreground hover:text-foreground uppercase tracking-widest"
                 >
                   ← Новый анализ
@@ -776,56 +1119,67 @@ const WBAuditWidget = () => {
             )}
 
             {/* WAITING PAYMENT STATE */}
-            {phase === 'WAITING_PAYMENT' && (
+            {phase === "WAITING_PAYMENT" && (
               <div className="bg-card border border-border rounded-3xl p-12 text-center">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <ShoppingCart size={32} className="text-primary" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Оплата</h3>
-                <p className="text-muted-foreground mb-8">Пожалуйста, выберите тарифный план для получения полного отчета</p>
-                
+                <p className="text-muted-foreground mb-8">
+                  Пожалуйста, выберите тарифный план для получения полного
+                  отчета
+                </p>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                  <button 
-                    onClick={() => setPhase('PAID')}
+                  <button
+                    onClick={() => setPhase("PAID")}
                     className="bg-card border border-border p-6 rounded-2xl hover:border-primary/50 transition-colors"
                   >
                     <div className="text-3xl font-black mb-2">500 ₽</div>
-                    <div className="text-sm uppercase tracking-widest">Basic Report</div>
+                    <div className="text-sm uppercase tracking-widest">
+                      Basic Report
+                    </div>
                   </button>
-                  
-                  <button 
-                    onClick={() => setPhase('PAID')}
+
+                  <button
+                    onClick={() => setPhase("PAID")}
                     className="bg-card border border-primary/30 p-6 rounded-2xl hover:border-primary/50 transition-colors"
                   >
                     <div className="text-3xl font-black mb-2">2 999 ₽</div>
-                    <div className="text-sm uppercase tracking-widest">Pro Strategy</div>
+                    <div className="text-sm uppercase tracking-widest">
+                      Pro Strategy
+                    </div>
                   </button>
                 </div>
               </div>
             )}
 
             {/* PAID STATE */}
-            {phase === 'PAID' && (
+            {phase === "PAID" && (
               <div className="bg-card border border-border rounded-3xl p-12 text-center">
                 <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Loader2 size={32} className="text-green-500 animate-spin" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Обработка платежа</h3>
-                <p className="text-muted-foreground">Подготовка вашего персонального PDF-отчета...</p>
+                <p className="text-muted-foreground">
+                  Подготовка вашего персонального PDF-отчета...
+                </p>
               </div>
             )}
 
             {/* PDF READY STATE */}
-            {phase === 'PDF_READY' && downloadUrl && (
+            {phase === "PDF_READY" && downloadUrl && (
               <div className="bg-card border border-border rounded-3xl p-12 text-center">
                 <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 size={32} className="text-green-500" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Отчет готов!</h3>
-                <p className="text-muted-foreground mb-8">Ваш персональный PDF-отчет успешно сгенерирован</p>
-                
-                <a 
-                  href={downloadUrl} 
+                <p className="text-muted-foreground mb-8">
+                  Ваш персональный PDF-отчет успешно сгенерирован
+                </p>
+
+                <a
+                  href={downloadUrl}
                   className="inline-block bg-primary text-primary-foreground py-4 px-8 rounded-xl hover:opacity-90 transition-opacity font-bold"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -836,19 +1190,23 @@ const WBAuditWidget = () => {
             )}
 
             {/* ERROR STATE */}
-            {phase === 'ERROR' && (
+            {phase === "ERROR" && (
               <div className="flex-1 flex flex-col items-center justify-center bg-card border border-border rounded-3xl p-12 text-center">
                 <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <XCircle size={32} className="text-red-500" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">Сервис временно недоступен</h3>
-                <p className="text-muted-foreground mb-8">Произошла ошибка при обработке вашего запроса</p>
-                
+                <h3 className="text-2xl font-bold mb-2">
+                  Сервис временно недоступен
+                </h3>
+                <p className="text-muted-foreground mb-8">
+                  Произошла ошибка при обработке вашего запроса
+                </p>
+
                 <button
                   onClick={() => {
-                    setPhase('INIT');
-                    setView('grid');
-                    setUrl('');
+                    setPhase("INIT");
+                    setView("grid");
+                    setUrl("");
                   }}
                   className="bg-primary text-primary-foreground py-3 px-8 rounded-xl hover:opacity-90 transition-opacity"
                 >
